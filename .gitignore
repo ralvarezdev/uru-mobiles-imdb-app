@@ -1,32 +1,239 @@
-# If you prefer the allow list template instead of the deny list, see community template:
-# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
-#
-# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
+# Expo / React Native / TypeScript .gitignore
+# Generado para mejores prácticas en desarrollo
 
-# Test binary, built with `go test -c`
-*.test
+# ============================================
+# Dependencias
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnp
+.pnp.js
 
-# Code coverage profiles and other test artifacts
-*.out
-coverage.*
-*.coverprofile
-profile.cov
+# ============================================
+# Expo
+# ============================================
+.expo/
+.expo-shared/
+dist/
+web-build/
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# ============================================
+# EAS (Expo Application Services)
+# ============================================
+eas.json.local
+.eas/
 
-# Go workspace file
-go.work
-go.work.sum
-
-# env file
+# ============================================
+# Variables de entorno
+# ============================================
 .env
+.env.local
+.env.development
+.env.production
+.env.test
+.env*.local
 
-# Editor/IDE
-# .idea/
-# .vscode/
+# ============================================
+# Builds nativos
+# ============================================
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# Android
+android/app/debug
+android/app/release
+android/.gradle/
+android/app/build/
+android/build/
+android/gradle/
+android/gradlew
+android/gradlew.bat
+*.apk
+*.aab
+
+# iOS
+ios/Pods/
+ios/build/
+ios/*.xcworkspace
+*.ipa
+*.dSYM.zip
+*.dSYM
+DerivedData/
+
+# ============================================
+# Caché y archivos temporales
+# ============================================
+.cache/
+*.cache
+.temp/
+tmp/
+.tmp/
+
+# Metro bundler
+.metro-health-check*
+
+# ============================================
+# TypeScript
+# ============================================
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ============================================
+# Testing
+# ============================================
+coverage/
+.nyc_output/
+*.lcov
+junit.xml
+
+# Jest
+jest-results/
+__tests__/__snapshots__/
+
+# ============================================
+# Logs
+# ============================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# ============================================
+# IDEs y Editores
+# ============================================
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# WebStorm / IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ============================================
+# Sistema Operativo
+# ============================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Linux
+.directory
+.Trash-*
+
+# ============================================
+# Herramientas de desarrollo
+# ============================================
+
+# ESLint
+.eslintcache
+
+# Prettier
+.prettierignore
+
+# Storybook
+storybook-static/
+
+# Bundle analyzer
+bundle-report.html
+bundle-stats.json
+
+# ============================================
+# CI/CD
+# ============================================
+.github/workflows/secrets/
+.circleci/
+.gitlab-ci-local/
+
+# ============================================
+# Misceláneo
+# ============================================
+
+# Lock files (descomentar si quieres ignorarlos)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Documentation
+docs/_build/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Sentry
+.sentryclirc
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
+# ============================================
+# Archivos sensibles
+# ============================================
+secrets/
+private/
+*.pem
+*.key
+*.cert
+credentials.json
+service-account.json
+
+# Google Services
+google-services.json
+GoogleService-Info.plist
+
+# ============================================
+# Assets grandes (opcional)
+# ============================================
+# Descomentar si tienes archivos grandes que no quieres versionar
+# *.mp4
+# *.mov
+# *.avi
+# assets/videos/
+# assets/large-images/

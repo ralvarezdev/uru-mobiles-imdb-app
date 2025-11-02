@@ -19,4 +19,7 @@ export const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     marginTop: -24,
   },
+  footerContainer: {
+    backgroundColor: colors.white,
+  }
 });

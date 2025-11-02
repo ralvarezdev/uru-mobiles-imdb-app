@@ -35,7 +35,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
 
       <InputField label="Email" placeholder="you@email.com" value={email} onChangeText={setEmail} icon="📧" />
 
-      <InputField label="Password" placeholder="Your password" value={password} onChangeText={setPassword} secureTextEntry icon="🔒" />
+      <InputField label="Password" placeholder="Your password" value={password} onChangeText={setPassword} secureTextEntry={true} icon="🔒" />
 
       <Button title="Iniciar Sesión" onPress={handleSubmit} loading={loading} />
 

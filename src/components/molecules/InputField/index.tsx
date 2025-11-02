@@ -1,3 +1,4 @@
+// src/components/molecules/InputField.tsx
 import React from "react";
 import { View } from "react-native";
 import { styles } from "./styles";
@@ -13,7 +14,14 @@ interface InputFieldProps {
   icon?: string;
 }
 
-export const InputField: React.FC<InputFieldProps> = ({ label, placeholder, value, onChangeText, secureTextEntry, icon }) => {
+export const InputField: React.FC<InputFieldProps> = ({
+  label,
+  placeholder,
+  value,
+  onChangeText,
+  secureTextEntry = false, // ✅ Valor por defecto
+  icon,
+}) => {
   return (
     <View style={styles.container}>
       <Text variant="label" style={styles.label}>
@@ -21,7 +29,12 @@ export const InputField: React.FC<InputFieldProps> = ({ label, placeholder, valu
       </Text>
       <View style={styles.inputContainer}>
         {!!icon && <Text style={styles.icon}>{icon}</Text>}
-        <Input placeholder={placeholder} value={value} onChangeText={onChangeText} secureTextEntry={secureTextEntry} />
+        <Input
+          placeholder={placeholder}
+          value={value}
+          onChangeText={onChangeText}
+          secureTextEntry={secureTextEntry} // ✅ Ahora siempre es boolean
+        />
       </View>
     </View>
   );

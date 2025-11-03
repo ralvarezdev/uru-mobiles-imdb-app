@@ -1,10 +1,10 @@
 // src/components/organisms/DeleteAccountWarning.tsx
-import React, { useState } from "react";
-import { View } from "react-native";
 import { Input } from "@/components/atoms/Input";
 import { Text } from "@/components/atoms/Text";
+import { DeleteAccountData } from "@/entities/User";
+import React, { useState } from "react";
+import { View } from "react-native";
 import { styles } from "./style";
-import { DeleteAccountData } from "@/components/types/User";
 
 interface DeleteAccountFormProps {
   onDataChange: (data: DeleteAccountData) => void;

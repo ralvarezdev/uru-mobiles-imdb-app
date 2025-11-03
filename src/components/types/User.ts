@@ -1,27 +1,20 @@
+import { User } from "@/entities/User";
 
-export interface User {
-  id: string;
-  name: string;
-  username: string;
-  email: string;
-  role: 'user' | 'critic';
-  stats: UserStats;
-  createdAt: string;
+export type UserLogin = {
+    username: string,
+    password: string
 }
 
-export interface UserStats {
-  moviesRated: number;
-  comments: number;
-  averageRating: number;
-}
-
-export interface UpdateUserProfileData {
-  name: string;
-  email: string;
-  username: string;
-  password?: string;
-}
-
-export interface DeleteAccountData {
-  password: string;
-}
+export const mockUser: User = {
+    id: "1",
+    name: "Juan Pérez",
+    username: "juanperez",
+    email: "juan.perez@email.com",
+    role: "user",
+    stats: {
+        moviesRated: 47,
+        comments: 23,
+        averageRating: 8.5,
+    },
+    createdAt: "2024-01-15",
+};

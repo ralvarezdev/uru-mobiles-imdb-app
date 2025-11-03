@@ -1,31 +1,18 @@
 // src/screens/UserProfile.tsx
-import React, { useState } from "react";
-import { Text } from "@/components/atoms/Text";
-import { Modal } from "@/components/atoms/Modal";
-import { CriticModalContent } from "@/components/organisms/CriticContent";
-import { EditProfileForm } from "@/components/organisms/EditProfileForm";
-import { DeleteAccountForm } from "@/components/organisms/DeleteAccountForm";
-import { View, ScrollView, TouchableOpacity, Alert, StatusBar } from "react-native";
-import { styles } from "./style";
 import { Button } from "@/components/atoms/Button";
+import { Modal } from "@/components/atoms/Modal";
+import { Text } from "@/components/atoms/Text";
+import { CriticModalContent } from "@/components/organisms/CriticContent";
+import { DeleteAccountForm } from "@/components/organisms/DeleteAccountForm";
+import { EditProfileForm } from "@/components/organisms/EditProfileForm";
+import { mockUser } from "@/components/types/User";
+import { DeleteAccountData, UpdateUserProfileData, User } from "@/entities/User";
+import React, { useState } from "react";
+import { Alert, ScrollView, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { DeleteAccountData, UpdateUserProfileData, User } from "@/components/types/User";
+import { styles } from "./style";
 
 // Mock del usuario (en producción vendría de contexto/Redux/API)
-const mockUser: User = {
-  id: "1",
-  name: "Juan Pérez",
-  username: "juanperez",
-  email: "juan.perez@email.com",
-  role: "user",
-  stats: {
-    moviesRated: 47,
-    comments: 23,
-    averageRating: 8.5,
-  },
-  createdAt: "2024-01-15",
-};
-
 export const UserProfile: React.FC = () => {
   const [user, setUser] = useState<User>(mockUser);
 

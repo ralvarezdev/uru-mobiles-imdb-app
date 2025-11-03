@@ -1,9 +1,9 @@
+import { Input } from "@/components/atoms/Input";
+import { Text } from "@/components/atoms/Text";
+import { UpdateUserProfileData } from "@/entities/User";
 import React, { useState } from "react";
 import { View } from "react-native";
-import { Text } from "@/components/atoms/Text";
 import { styles } from "./style";
-import { Input } from "@/components/atoms/Input";
-import { UpdateUserProfileData } from "@/components/types/User";
 
 interface EditProfileFormProps {
   initialData: UpdateUserProfileData;

@@ -3,22 +3,23 @@ import { View } from "react-native";
 // import { ProfileType, LoginFormData } from "../../../types";
 import { Button } from "@/components/atoms/Button";
 import { Text } from "@/components/atoms/Text";
-import { styles } from "./styles";
 import { InputField } from "@/components/molecules/InputField";
+import { UserLogin } from "@/components/types/User";
+import { styles } from "./styles";
 
 interface LoginFormProps {
-  onSubmit: (data: { email: string; password: string }) => void;
+  onSubmit: (data: UserLogin) => void;
 }
 
 export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
-  const [email, setEmail] = useState("");
+  const [username, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      onSubmit({ email, password });
+      onSubmit({ username, password });
     } finally {
       setLoading(false);
     }
@@ -33,7 +34,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
         Sign in or sign up
       </Text>
 
-      <InputField label="Email" placeholder="you@email.com" value={email} onChangeText={setEmail} icon="📧" />
+      <InputField label="Email" placeholder="you@email.com" value={username} onChangeText={setEmail} icon="📧" />
 
       <InputField label="Password" placeholder="Your password" value={password} onChangeText={setPassword} secureTextEntry={true} icon="🔒" />
 

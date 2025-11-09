@@ -5,6 +5,7 @@ import { Text } from "@/components/atoms/Text";
 import { InputField } from "@/components/molecules/InputField";
 import { LogInRequest } from "@ralvarezdev/proto-auth-ts";
 import { styles } from "./styles";
+import { router, useRouter } from "expo-router";
 import { LoadingMessage } from "@/components/molecules/LoadingMessage";
 import Toast from "react-native-toast-message";
 import { authService } from "@/services/authService";
@@ -16,6 +17,10 @@ export const LoginForm: React.FC = () => {
     username: "yeglistar",
   } as LogInRequest);
   const [loading, setLoading] = useState(false);
+
+  const handleRegisterNavigation = () => {
+    router.push("/register");
+  };
 
   const handleChangeLoginInput = (field: string, value: string) => {
     setLoginInput((prev) => ({ ...prev, [field]: value }));
@@ -94,7 +99,7 @@ export const LoginForm: React.FC = () => {
       <Button title="Iniciar Sesión" onPress={handleOnLogin} loading={loading} />
 
       <Text style={styles.registerText}>
-        You don't have an account? <Text style={styles.registerLink}>Sign up for free</Text>
+        You don't have an account? <Text style={styles.registerLink} onPress={handleRegisterNavigation}>Sign up for free</Text>
       </Text>
     </View>
   );

@@ -21,4 +21,9 @@ export const styles = StyleSheet.create({
     fontSize: 18,
     zIndex: 1,
   },
+  error: {
+    marginTop: spacing.xs,
+    color: colors.error,
+    fontSize: 12,
+  },
 });

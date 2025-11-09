@@ -12,6 +12,7 @@ interface InputFieldProps {
   onChangeText: (text: string) => void;
   secureTextEntry?: boolean;
   icon?: string;
+  error?: string;
 }
 
 export const InputField: React.FC<InputFieldProps> = ({
@@ -21,6 +22,7 @@ export const InputField: React.FC<InputFieldProps> = ({
   onChangeText,
   secureTextEntry = false, // ✅ Valor por defecto
   icon,
+  error,
 }) => {
   return (
     <View style={styles.container}>
@@ -35,6 +37,7 @@ export const InputField: React.FC<InputFieldProps> = ({
           onChangeText={onChangeText}
           secureTextEntry={secureTextEntry} // ✅ Ahora siempre es boolean
         />
+        {!!error && <Text style={styles.error}>{error}</Text>}
       </View>
     </View>
   );

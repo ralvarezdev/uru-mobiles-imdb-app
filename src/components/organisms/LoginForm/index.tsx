@@ -6,6 +6,7 @@ import { Text } from "@/components/atoms/Text";
 import { InputField } from "@/components/molecules/InputField";
 import { UserLogin } from "@/components/types/User";
 import { styles } from "./styles";
+import { router, useRouter } from "expo-router";
 
 interface LoginFormProps {
   onSubmit: (data: UserLogin) => void;
@@ -16,6 +17,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+
+
   const handleSubmit = async () => {
     setLoading(true);
     try {
@@ -23,6 +26,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRegisterNavigation = () => {
+    router.push("/register");
   };
 
   return (
@@ -41,7 +48,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
       <Button title="Iniciar Sesión" onPress={handleSubmit} loading={loading} />
 
       <Text style={styles.registerText}>
-        You don't have an account? <Text style={styles.registerLink}>Sign up for free</Text>
+        You don't have an account? <Text style={styles.registerLink} onPress={handleRegisterNavigation}>Sign up for free</Text>
       </Text>
     </View>
   );

@@ -6,10 +6,9 @@ import { styles } from "./styles";
 interface LoadingProps extends ActivityIndicatorProps {
   size?: "small" | "large";
   color?: string;
-  text?: string;
 }
 
-export const Loading: React.FC<LoadingProps> = ({ size = "large", color = colors.primary, text, ...props }) => {
+export const Loading: React.FC<LoadingProps> = ({ size = "large", color = colors.primary, ...props }) => {
   return (
     <View style={styles.container}>
       <ActivityIndicator size={size} color={color} {...props} />

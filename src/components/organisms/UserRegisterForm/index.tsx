@@ -7,6 +7,10 @@ import { InputField } from "@/components/molecules/InputField";
 import { Button } from "@/components/atoms/Button";
 import { router } from "expo-router";
 import { CreateAccountRequest } from "@ralvarezdev/proto-user-ts";
+import { LoadingMessage } from "@/components/molecules/LoadingMessage";
+import authService from "@/services/authService";
+import Toast from "react-native-toast-message";
+import userService from "@/services/userService";
 
 interface FormErrors {
   firstName: string;
@@ -18,11 +22,11 @@ interface FormErrors {
 
 export const UserRegisterForm: React.FC = () => {
   const [formData, setFormData] = useState<CreateAccountRequest>({
-    firstName: "",
-    lastName: "",
-    username: "",
-    password: "",
-    email: "",
+    firstName: "Yegli",
+    lastName: "Montanez",
+    username: "yeglistar",
+    password: "yeglistar",
+    email: "yegli_08@hotmail.com",
     $typeName: "ralvarezdev.v1.CreateAccountRequest",
   } as CreateAccountRequest);
 
@@ -99,53 +103,50 @@ export const UserRegisterForm: React.FC = () => {
     return isValid;
   };
 
-  const handleRegister = async () => {
-    if (validateForm()) {
-      return;
-    }
-   setLoading(true);
-    const createUser = async (formData: CreateAccountRequest) => {
-      try {
-        const response = await createUser({
-          firstName: formData.firstName.trim(),
-          lastName: formData.lastName.trim(),
-          email: formData.email.trim().toLowerCase(),
-          username: formData.username.trim().toLowerCase(),
-          password: formData.password,
-          $typeName: "ralvarezdev.v1.CreateAccountRequest",
-        });
-
-        // Success
-        Alert.alert("Success! 🎉", "Your account has been created successfully", [
-          {
-            text: "Continue",
-            onPress: () => router.push("Login" as never),
-          },
-        ]);
-
-        // Clear form
-        setFormData({
-          firstName: "",
-          lastName: "",
-          email: "",
-          username: "",
-          password: "",
-          $typeName: "ralvarezdev.v1.CreateAccountRequest",
-        });
-      } catch (error: any) {
-        Alert.alert("Registration Failed", error.message || "Could not complete registration. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleChange = (field: keyof CreateAccountRequest, value: string) => {
-    setFormData({ ...formData, [field]: value });
-    // Clear error when user starts typing
-    if (errors[field as keyof FormErrors]) {
-      setErrors({ ...errors, [field]: "" });
+  const handleRegister = async () => {
+    setLoading(true);
+    try {
+      const isValid = validateForm();
+      if (!isValid) {
+        Toast.show({
+          type: "error", // 'success', 'error', 'info'
+          text1: "Datos incorrectos",
+          text2: "Asegurese de haber ingresado todos sus datos",
+          position: "bottom", // o 'top'
+        });
+        return;
+      }
+      // const registerInput: CreateAccountRequest = { ...user, password, avatar: "" };
+      const userRegistered = await userService.register(formData);
+      // if (userRegistered.id) {
+      //   Toast.show({
+      //     type: "success", // 'success', 'error', 'info'
+      //     text1: "Se ha registrado exitosamente",
+      //     text2: "Se le redireccionara al login...",
+      //     position: "bottom", // o 'top'
+      //   });
+      //   router.replace("/");
+      // } else {
+      //   Toast.show({
+      //     type: "error", // 'success', 'error', 'info'
+      //     text1: "Datos incorrectos",
+      //     text2: "Por favor, verifique que haya rellenado todos los datos.",
+      //     position: "bottom", // o 'top'
+      //   });
+      // }
+    } catch (error) {
+      Toast.show({
+        type: "error", // 'success', 'error', 'info'
+        text1: "Hubo un problema con su solicitud. ",
+        text2: `Por favor, intentelo de nuevo mas tarde.`,
+        position: "bottom", // o 'top'
+      });
     }
+    setLoading(false);
   };
 
   const goToLogin = () => {
@@ -153,7 +154,7 @@ export const UserRegisterForm: React.FC = () => {
   };
 
   if (loading) {
-    return <Loading text="Creating your account..." />;
+    return <LoadingMessage message="Creating your account..." />;
   }
 
   return (
@@ -223,7 +224,9 @@ export const UserRegisterForm: React.FC = () => {
       <Button title="Create Account" onPress={handleRegister} />
       <View style={styles.loginSection}>
         <Text style={styles.loginText}>Already have an account? </Text>
-        <Text style={styles.loginLink} onPress={goToLogin}>Sign In </Text>
+        <Text style={styles.loginLink} onPress={goToLogin}>
+          Sign In{" "}
+        </Text>
       </View>
     </View>
   );

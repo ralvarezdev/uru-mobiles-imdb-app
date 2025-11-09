@@ -43,12 +43,12 @@ export class UserService {
   //     return { headers };
   //   }
 
-  public async createUser(input: CreateAccountRequest): Promise<CreateAccountResponse> {
+  public async register(input: CreateAccountRequest): Promise<CreateAccountResponse> {
     try {
       console.log("input", BASE_URL);
-      const res = await this.client.createUser(input);
+      const res = await this.client.createAccount(input);
       console.log("res login", res);
-      if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
+      // if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
       return res as CreateAccountResponse;
     } catch (err: any) {
       console.error("err", err);

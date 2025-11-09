@@ -1,46 +1,37 @@
 import { Text } from "@/components/atoms/Text";
 import React, { useState } from "react";
-import { Alert, TouchableOpacity, View } from "react-native";
+import { Alert, View } from "react-native";
 import { Loading } from "@/components/atoms/Loading";
 import { styles } from "./style";
 import { InputField } from "@/components/molecules/InputField";
 import { Button } from "@/components/atoms/Button";
-import { router, useNavigation } from "expo-router";
-
-//export const UserProfileHeader: React.FC = () => {
-interface FormData {
-  name: string;
-  email: string;
-  username: string;
-  password: string;
-  confirmPassword: string;
-}
+import { router } from "expo-router";
+import { CreateAccountRequest } from "@ralvarezdev/proto-user-ts";
 
 interface FormErrors {
-  name: string;
-  email: string;
+  firstName: string;
+  lastName: string;
   username: string;
   password: string;
-  confirmPassword: string;
+  email: string;
 }
 
 export const UserRegisterForm: React.FC = () => {
-  const navigation = useNavigation();
-
-  const [formData, setFormData] = useState<FormData>({
-    name: "",
-    email: "",
+  const [formData, setFormData] = useState<CreateAccountRequest>({
+    firstName: "",
+    lastName: "",
     username: "",
     password: "",
-    confirmPassword: "",
-  });
+    email: "",
+    $typeName: "ralvarezdev.v1.CreateAccountRequest",
+  } as CreateAccountRequest);
 
   const [errors, setErrors] = useState<FormErrors>({
-    name: "",
-    email: "",
+    firstName: "",
+    lastName: "",
     username: "",
     password: "",
-    confirmPassword: "",
+    email: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -48,19 +39,28 @@ export const UserRegisterForm: React.FC = () => {
   const validateForm = (): boolean => {
     let isValid = true;
     const newErrors: FormErrors = {
-      name: "",
-      email: "",
+      firstName: "",
+      lastName: "",
       username: "",
       password: "",
-      confirmPassword: "",
+      email: "",
     };
 
     // Validate name
-    if (formData.name.trim() === "") {
-      newErrors.name = "Name is required";
+    if (formData.firstName.trim() === "") {
+      newErrors.firstName = "First name is required";
       isValid = false;
-    } else if (formData.name.trim().length < 3) {
-      newErrors.name = "Name must be at least 3 characters";
+    } else if (formData.firstName.trim().length < 3) {
+      newErrors.firstName = "First name must be at least 3 characters";
+      isValid = false;
+    }
+
+    // Validate last name
+    if (formData.lastName.trim() === "") {
+      newErrors.lastName = "Last name is required";
+      isValid = false;
+    } else if (formData.lastName.trim().length < 3) {
+      newErrors.lastName = "Last name must be at least 3 characters";
       isValid = false;
     }
 
@@ -95,61 +95,55 @@ export const UserRegisterForm: React.FC = () => {
       isValid = false;
     }
 
-    // Validate confirm password
-    if (formData.confirmPassword === "") {
-      newErrors.confirmPassword = "Please confirm your password";
-      isValid = false;
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-      isValid = false;
-    }
-
     setErrors(newErrors);
     return isValid;
   };
 
   const handleRegister = async () => {
-    if (!validateForm()) {
+    if (validateForm()) {
       return;
     }
+   setLoading(true);
+    const createUser = async (formData: CreateAccountRequest) => {
+      try {
+        const response = await createUser({
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          email: formData.email.trim().toLowerCase(),
+          username: formData.username.trim().toLowerCase(),
+          password: formData.password,
+          $typeName: "ralvarezdev.v1.CreateAccountRequest",
+        });
 
-    setLoading(true);
+        // Success
+        Alert.alert("Success! 🎉", "Your account has been created successfully", [
+          {
+            text: "Continue",
+            onPress: () => router.push("Login" as never),
+          },
+        ]);
 
-    try {
-     // const response = await registerUser({
-      //   name: formData.name.trim(),
-      //   email: formData.email.trim().toLowerCase(),
-      //   username: formData.username.trim().toLowerCase(),
-      //   password: formData.password,
-      // });
-
-      // Success
-      Alert.alert("Success! 🎉", "Your account has been created successfully", [
-        {
-          text: "Continue",
-          onPress: () => navigation.navigate("Login" as never),
-        },
-      ]);
-
-      // Clear form
-      setFormData({
-        name: "",
-        email: "",
-        username: "",
-        password: "",
-        confirmPassword: "",
-      });
-    } catch (error: any) {
-      Alert.alert("Registration Failed", error.message || "Could not complete registration. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+        // Clear form
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          username: "",
+          password: "",
+          $typeName: "ralvarezdev.v1.CreateAccountRequest",
+        });
+      } catch (error: any) {
+        Alert.alert("Registration Failed", error.message || "Could not complete registration. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
   };
 
-  const handleChange = (field: keyof FormData, value: string) => {
+  const handleChange = (field: keyof CreateAccountRequest, value: string) => {
     setFormData({ ...formData, [field]: value });
     // Clear error when user starts typing
-    if (errors[field]) {
+    if (errors[field as keyof FormErrors]) {
       setErrors({ ...errors, [field]: "" });
     }
   };
@@ -165,16 +159,25 @@ export const UserRegisterForm: React.FC = () => {
   return (
     <View style={styles.formCard}>
       <InputField
-        label="Full Name"
-        placeholder="e.g. John Doe"
-        value={formData.name}
-        onChangeText={(value) => handleChange("name", value)}
-        error={errors.name}
+        label="First Name"
+        placeholder="e.g. John"
+        value={formData.firstName}
+        onChangeText={(value) => handleChange("firstName", value)}
+        error={errors.firstName}
         icon="👤"
         //autoCapitalize="words"
         //returnKeyType="next"
       />
-
+      <InputField
+        label="Last Name"
+        placeholder="e.g. Doe"
+        value={formData.lastName}
+        onChangeText={(value) => handleChange("lastName", value)}
+        error={errors.lastName}
+        icon="👤"
+        //autoCapitalize="words"
+        //returnKeyType="next"
+      />
       <InputField
         label="Email Address"
         placeholder="email@example.com"
@@ -186,7 +189,6 @@ export const UserRegisterForm: React.FC = () => {
         //autoCapitalize="none"
         //returnKeyType="next"
       />
-
       <InputField
         label="Username"
         placeholder="username123"
@@ -197,7 +199,6 @@ export const UserRegisterForm: React.FC = () => {
         //autoCapitalize="none"
         //returnKeyType="next"
       />
-
       <InputField
         label="Password"
         placeholder="Minimum 8 characters"
@@ -208,7 +209,6 @@ export const UserRegisterForm: React.FC = () => {
         secureTextEntry
         //returnKeyType="next"
       />
-
       {/* <InputField
         label="Confirm Password"
         placeholder="Repeat your password"
@@ -220,14 +220,10 @@ export const UserRegisterForm: React.FC = () => {
         //returnKeyType="done"
         onSubmitEditing={handleRegister}
       /> */}
-
       <Button title="Create Account" onPress={handleRegister} />
-
       <View style={styles.loginSection}>
         <Text style={styles.loginText}>Already have an account? </Text>
-        <Text style={styles.loginLink} onPress={goToLogin}>
-          Sign In
-        </Text>
+        <Text style={styles.loginLink} onPress={goToLogin}>Sign In </Text>
       </View>
     </View>
   );

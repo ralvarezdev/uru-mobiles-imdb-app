@@ -5,17 +5,20 @@ import { DeleteAccountData } from "@/entities/User";
 import React, { useState } from "react";
 import { View } from "react-native";
 import { styles } from "./style";
+import { DeleteAccountRequest } from "@ralvarezdev/proto-user-ts";
 
 interface DeleteAccountFormProps {
-  onDataChange: (data: DeleteAccountData) => void;
+  data: DeleteAccountRequest;
+  onDataChange: (data: DeleteAccountRequest) => void;
 }
 
-export const DeleteAccountForm: React.FC<DeleteAccountFormProps> = ({ onDataChange }) => {
-  const [password, setPassword] = useState("");
+export const DeleteAccountForm: React.FC<DeleteAccountFormProps> = ({ data, onDataChange }) => {
+  // const [data, setData]
+  // const [password, setPassword] = useState("");
 
   const handlePasswordChange = (value: string) => {
-    setPassword(value);
-    onDataChange({ password: value });
+    // setPassword(value);
+    onDataChange({ ...data, password: value });
   };
 
   return (
@@ -34,7 +37,7 @@ export const DeleteAccountForm: React.FC<DeleteAccountFormProps> = ({ onDataChan
         <Text variant="label" style={styles.label}>
           Confirma tu contraseña
         </Text>
-        <Input placeholder="Ingresa tu contraseña actual" value={password} onChangeText={handlePasswordChange} secureTextEntry={true} />
+        <Input placeholder="Ingresa tu contraseña actual" value={data.password} onChangeText={handlePasswordChange} secureTextEntry={true} />
       </View>
     </View>
   );

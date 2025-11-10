@@ -5,16 +5,19 @@ import { styles } from "./style";
 import { Text } from "@/components/atoms/Text";
 import { User } from "@/entities/User";
 import { ModalBecomeACritic } from "../ModalBecomeACritic";
+import { GetMyProfileResponse } from "@ralvarezdev/proto-user-ts";
 
 interface RequestToBeCriticUserProfileProps {
-  user: User;
+  user: GetMyProfileResponse | undefined;
+  userRoles: string[];
 }
-export const RequestToBeCriticUserProfile: React.FC<RequestToBeCriticUserProfileProps> = ({ user }) => {
+export const RequestToBeCriticUserProfile: React.FC<RequestToBeCriticUserProfileProps> = ({ user, userRoles }) => {
   const [isCriticModalVisible, setIsCriticModalVisible] = useState(false);
 
   return (
     <View>
-      {user.role !== "critic" && (
+      {/* {user.role !== "critic" && ( */}
+      {userRoles.includes("critic") && (
         <View style={styles.criticPromoCard}>
           <View style={styles.criticPromoHeader}>
             <Text style={styles.criticPromoIcon}>🎭</Text>
@@ -30,10 +33,7 @@ export const RequestToBeCriticUserProfile: React.FC<RequestToBeCriticUserProfile
           <Button title="⭐ Request to be a Critic" onPress={() => setIsCriticModalVisible(true)} variant="primary" />
         </View>
       )}
-      <ModalBecomeACritic
-        visible={isCriticModalVisible}
-        onClose={() => setIsCriticModalVisible(false)}
-      />
+      <ModalBecomeACritic visible={isCriticModalVisible} onClose={() => setIsCriticModalVisible(false)} />
     </View>
   );
 };

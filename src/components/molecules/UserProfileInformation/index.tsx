@@ -3,9 +3,10 @@ import { View } from "react-native";
 import { Text } from "@/components/atoms/Text";
 import { User } from "@/entities/User";
 import { styles } from "./style";
+import { GetMyProfileResponse } from "@ralvarezdev/proto-user-ts";
 
 interface UserProfileInformationProps {
-  user: User;
+  user: GetMyProfileResponse | undefined;
 }
 
 export const UserProfileInformation: React.FC<UserProfileInformationProps> = ({ user }: UserProfileInformationProps) => {
@@ -20,11 +21,22 @@ export const UserProfileInformation: React.FC<UserProfileInformationProps> = ({ 
           <View style={styles.infoLabel}>
             <Text style={styles.infoIcon}>👤</Text>
             <Text variant="body" style={styles.infoLabelText}>
-              Full Name
+              First Name
             </Text>
           </View>
           <Text variant="body" style={styles.infoValue}>
-            {user.name}
+            {user?.firstName}
+          </Text>
+        </View>
+        <View style={styles.infoRow}>
+          <View style={styles.infoLabel}>
+            <Text style={styles.infoIcon}>👤</Text>
+            <Text variant="body" style={styles.infoLabelText}>
+              Last Name
+            </Text>
+          </View>
+          <Text variant="body" style={styles.infoValue}>
+            {user?.lastName}
           </Text>
         </View>
         <View style={styles.infoRow}>
@@ -35,7 +47,7 @@ export const UserProfileInformation: React.FC<UserProfileInformationProps> = ({ 
             </Text>
           </View>
           <Text variant="body" style={styles.infoValue}>
-            {user.email}
+            {user?.email}
           </Text>
         </View>
         <View style={styles.infoRow}>
@@ -46,7 +58,7 @@ export const UserProfileInformation: React.FC<UserProfileInformationProps> = ({ 
             </Text>
           </View>
           <Text variant="body" style={styles.infoValue}>
-            @{user.username}
+            @{user?.username}
           </Text>
         </View>
       </View>

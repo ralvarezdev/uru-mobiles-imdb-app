@@ -1,4 +1,4 @@
-import { UserService as UserServiceProto, CreateAccountRequest, CreateAccountResponse } from "@ralvarezdev/proto-user-ts";
+import { UserService as UserServiceProto, CreateAccountRequest, CreateAccountResponse, GetMyProfileRequest, GetMyProfileResponse, UpdateProfileRequest, UpdateProfileResponse, DeleteAccountResponse, DeleteAccountRequest } from "@ralvarezdev/proto-user-ts";
 
 const BASE_URL = Constants.expoConfig?.extra?.API_BASE_URL_USER ?? "http://localhost:8080";
 
@@ -43,16 +43,51 @@ export class UserService {
   //     return { headers };
   //   }
 
-  public async register(input: CreateAccountRequest): Promise<CreateAccountResponse> {
+  public async register(orops: CreateAccountRequest): Promise<CreateAccountResponse> {
     try {
-      console.log("input", BASE_URL);
-      const res = await this.client.createAccount(input);
-      console.log("res login", res);
+      const res = await this.client.createAccount(orops);
+      console.log("register", res);
       // if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
       return res as CreateAccountResponse;
     } catch (err: any) {
       console.error("err", err);
-      throw new Error(err?.message ?? "Error al iniciar sesión");
+      throw new Error(err?.message ?? "Error al registrar usuario");
+    }
+  }
+
+  public async me(orops: GetMyProfileRequest): Promise<GetMyProfileResponse> {
+    try {
+      const user = await this.client.getMyProfile(orops);
+      console.log("user profile", user);
+      // if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
+      return user as GetMyProfileResponse;
+    } catch (err: any) {
+      console.error("err", err);
+      throw new Error(err?.message ?? "Error al obtener el perfil del usuario");
+    }
+  }
+
+  public async update(orops: UpdateProfileRequest): Promise<UpdateProfileResponse> {
+    try {
+      const result = await this.client.updateProfile(orops);
+      console.log("update user profile", result);
+      // if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
+      return result as UpdateProfileResponse;
+    } catch (err: any) {
+      console.error("err", err);
+      throw new Error(err?.message ?? "Error al actualizar el usuario");
+    }
+  }
+
+  public async delete(orops: DeleteAccountRequest): Promise<DeleteAccountResponse> {
+    try {
+      const result = await this.client.deleteAccount(orops);
+      console.log("update user profile", result);
+      // if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
+      return result as DeleteAccountResponse;
+    } catch (err: any) {
+      console.error("err", err);
+      throw new Error(err?.message ?? "Error al eliminar el usuario");
     }
   }
 

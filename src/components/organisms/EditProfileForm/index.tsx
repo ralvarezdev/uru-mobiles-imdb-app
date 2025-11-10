@@ -4,16 +4,17 @@ import { UpdateUserProfileData } from "@/entities/User";
 import React, { useState } from "react";
 import { View } from "react-native";
 import { styles } from "./style";
+import { UpdateProfileRequest } from "@ralvarezdev/proto-user-ts";
 
 interface EditProfileFormProps {
-  initialData: UpdateUserProfileData;
-  onDataChange: (data: UpdateUserProfileData) => void;
+  initialData: UpdateProfileRequest;
+  onDataChange: (data: UpdateProfileRequest) => void;
 }
 
 export const EditProfileForm: React.FC<EditProfileFormProps> = ({ initialData, onDataChange }) => {
-  const [formData, setFormData] = useState<UpdateUserProfileData>(initialData);
+  const [formData, setFormData] = useState<UpdateProfileRequest>(initialData);
 
-  const handleChange = (field: keyof UpdateUserProfileData, value: string) => {
+  const handleChange = (field: keyof UpdateProfileRequest, value: string) => {
     const newData = { ...formData, [field]: value };
     setFormData(newData);
     onDataChange(newData);
@@ -23,9 +24,15 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ initialData, o
     <View>
       <View style={styles.fieldContainer}>
         <Text variant="label" style={styles.label}>
-          Full name
+          First name
         </Text>
-        <Input placeholder="Juan Pérez" value={formData.name} onChangeText={(value) => handleChange("name", value)} />
+        <Input placeholder="Juan Pérez" value={formData.firstName} onChangeText={(value) => handleChange("firstName", value)} />
+      </View>
+      <View style={styles.fieldContainer}>
+        <Text variant="label" style={styles.label}>
+          Last name
+        </Text>
+        <Input placeholder="Juan Pérez" value={formData.lastName} onChangeText={(value) => handleChange("lastName", value)} />
       </View>
 
       <View style={styles.fieldContainer}>

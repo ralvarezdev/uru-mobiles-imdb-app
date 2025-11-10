@@ -4,48 +4,53 @@ import { Button } from "../../atoms/Button";
 import { UpdateUserProfileData, User } from "@/entities/User";
 import { EditProfileForm } from "@/components/organisms/EditProfileForm";
 import { Modal } from "@/components/atoms/Modal";
+import { GetMyProfileResponse, UpdateProfileRequest } from "@ralvarezdev/proto-user-ts";
+import userService from "@/services/userService";
 
 interface ModalEditUserProfileProps {
-  user: User;
+  user: GetMyProfileResponse | undefined;
   visible: boolean;
   onClose: () => void;
 }
 
 export const ModalEditUserProfile: React.FC<ModalEditUserProfileProps> = ({ user, visible, onClose }) => {
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [editFormData, setEditFormData] = useState<UpdateUserProfileData>({
-    name: user.name,
-    email: user.email,
-    username: user.username,
+  // const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [editFormData, setEditFormData] = useState<UpdateProfileRequest>({
+    firstName: user?.firstName,
+    lastName: user?.lastName,
+    birthdate: user?.birthdate,
+    // email: user?.email,
+    // username: user?.username,
+    $typeName: "ralvarezdev.v1.UpdateProfileRequest",
   });
 
   const handleUpdateProfile = async () => {
     try {
-      // Validaciones
-      if (!editFormData.name || !editFormData.email || !editFormData.username) {
+      if (!editFormData.lastName || !editFormData.firstName) {
+        // if (!editFormData.lastName || !editFormData.firstName || !editFormData.email || !editFormData.username) {
         Alert.alert("Error", "Por favor completa todos los campos requeridos");
         return;
       }
 
-      if (editFormData.password && editFormData.password.length < 8) {
-        Alert.alert("Error", "La contraseña debe tener al menos 8 caracteres");
-        return;
-      }
+      // if (editFormData.password && editFormData.password.length < 8) {
+      //   Alert.alert("Error", "La contraseña debe tener al menos 8 caracteres");
+      //   return;
+      // }
 
-      // Aquí iría la llamada al API
-      // await api.updateUserProfile(editFormData);
+      const resultUpdateProfile = userService.update(editFormData);
 
-      // Actualizar estado local
       setEditFormData({
-        ...user,
-        name: editFormData.name,
-        email: editFormData.email,
-        username: editFormData.username,
+        ...editFormData,
+        firstName: editFormData.firstName,
+        lastName: editFormData.lastName,
+        birthdate: editFormData.birthdate,
+        // email: editFormData.email,
+        // username: editFormData.username,
       });
 
       console.log("Perfil actualizado:", editFormData);
       Alert.alert("✅ Éxito", "Tu perfil ha sido actualizado correctamente");
-      setIsEditModalVisible(false);
+      onClose();
     } catch (error) {
       console.error("Error al actualizar perfil:", error);
       Alert.alert("Error", "No se pudo actualizar el perfil. Inténtalo de nuevo.");
@@ -62,9 +67,7 @@ export const ModalEditUserProfile: React.FC<ModalEditUserProfileProps> = ({ user
           <Button title="Cancel" variant="secondary" onPress={onClose} />
         </>
       }>
-      <EditProfileForm 
-      initialData={editFormData} 
-      onDataChange={setEditFormData} />
+      <EditProfileForm initialData={editFormData} onDataChange={setEditFormData} />
     </Modal>
   );
 };

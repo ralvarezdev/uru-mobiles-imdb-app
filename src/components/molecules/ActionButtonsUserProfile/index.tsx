@@ -6,9 +6,10 @@ import { Modal } from "@/components/atoms/Modal";
 import { ModalEditUserProfile } from "../ModalEditUserProfile";
 import { User } from "@/entities/User";
 import { ModalDeleteUserProfileAccount } from "../ModalDeleteUserProfileAccount";
+import { GetMyProfileResponse } from "@ralvarezdev/proto-user-ts";
 
 interface ActionButtonsUserProfileProps {
-  user: User;
+  user: GetMyProfileResponse | undefined;
 }
 
 export const ActionButtonsUserProfile: React.FC<ActionButtonsUserProfileProps> = ({ user }) => {
@@ -18,16 +19,8 @@ export const ActionButtonsUserProfile: React.FC<ActionButtonsUserProfileProps> =
     <View style={styles.actionButtons}>
       <Button title="Edit my profile" onPress={() => setIsEditModalVisible(true)} variant="primary" />
       <Button title="Delete my account" onPress={() => setIsDeleteModalVisible(true)} variant="primary" />
-      <ModalEditUserProfile
-        user={user}
-        visible={isEditModalVisible}
-        onClose={() => setIsEditModalVisible(false)}
-      />
-      <ModalDeleteUserProfileAccount
-        visible={isDeleteModalVisible}
-        onClose={() => setIsDeleteModalVisible(false)}
-      />
-
+      <ModalEditUserProfile user={user} visible={isEditModalVisible} onClose={() => setIsEditModalVisible(false)} />
+      <ModalDeleteUserProfileAccount visible={isDeleteModalVisible} onClose={() => setIsDeleteModalVisible(false)} />
     </View>
   );
 };

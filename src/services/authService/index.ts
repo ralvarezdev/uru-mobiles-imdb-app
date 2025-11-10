@@ -1,4 +1,4 @@
-import { AuthService as AuthServiceProto, LogInRequest, LogInResponse } from "@ralvarezdev/proto-auth-ts";
+import { AuthService as AuthServiceProto, ListUserRolesRequest, ListUserRolesResponse, LogInRequest, LogInResponse } from "@ralvarezdev/proto-auth-ts";
 
 const BASE_URL = Constants.expoConfig?.extra?.API_BASE_URL_AUTH ?? "http://localhost:8080";
 
@@ -50,7 +50,6 @@ export class AuthService {
 
   public async logIn(input: LogInRequest): Promise<LogInResponse> {
     try {
-      console.log('input', BASE_URL);
       const res = await this.client.logIn(input);
       console.log('res login', res);
       if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
@@ -58,6 +57,18 @@ export class AuthService {
     } catch (err: any) {
       console.error('err',err);
       throw new Error(err?.message ?? "Error al iniciar sesión");
+    }
+  }
+
+  public async getMyRoles(input: ListUserRolesRequest): Promise<ListUserRolesResponse> {
+    try {
+      const userRoles = await this.client.listRoles(input);
+      console.log('user roles', userRoles);
+      // if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
+      return userRoles as ListUserRolesResponse;
+    } catch (err: any) {
+      console.error('err',err);
+      throw new Error(err?.message ?? "Error al obtener los roles del usuario");
     }
   }
 

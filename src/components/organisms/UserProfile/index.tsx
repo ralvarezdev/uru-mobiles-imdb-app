@@ -1,25 +1,65 @@
 import { Modal } from "@/components/atoms/Modal";
 import { ActionButtonsUserProfile } from "@/components/molecules/ActionButtonsUserProfile";
+import { LoadingMessage } from "@/components/molecules/LoadingMessage";
 import { ModalBecomeACritic } from "@/components/molecules/ModalBecomeACritic";
 import { ModalEditUserProfile } from "@/components/molecules/ModalEditUserProfile";
 import { RequestToBeCriticUserProfile } from "@/components/molecules/RequestToBeCriticUserProfile";
 import { UserProfileCard } from "@/components/molecules/UserProfileCard";
 import { UserProfileInformation } from "@/components/molecules/UserProfileInformation";
 import { User } from "@/entities/User";
-import React from "react";
+import authService from "@/services/authService";
+import userService from "@/services/userService";
+import { ListUserRolesRequest, ListUserRolesResponse } from "@ralvarezdev/proto-auth-ts";
+import { GetMyProfileResponse, GetMyProfileRequest } from "@ralvarezdev/proto-user-ts";
+import React, { useEffect, useState } from "react";
 import { View } from "react-native";
 
-interface UserProfileProps {
-  user: User;
-}
+export const UserProfile: React.FC = () => {
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<GetMyProfileResponse | undefined>();
+  const [userRoles, setUserRoles] = useState<string[]>([]);
 
-export const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
+  useEffect(() => {
+    loadUserProfile();
+  }, []);
+
+  const loadUserProfile = async () => {
+    setLoading(true);
+    const getMyProfileRequest: GetMyProfileRequest = {
+      $typeName: "ralvarezdev.v1.GetMyProfileRequest",
+    };
+    const user = await userService.me(getMyProfileRequest);
+    setUser(user);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (user?.username) {
+      loadUserRoles();
+    }
+  }, [user]);
+
+  const loadUserRoles = async () => {
+    setLoading(true);
+    const getUserRolesRequest: ListUserRolesRequest = {
+      username: user!.username,
+      $typeName: "ralvarezdev.v1.ListUserRolesRequest",
+    };
+    const userRoles = await authService.getMyRoles(getUserRolesRequest);
+    setUserRoles(userRoles?.roleNames || []);
+    setLoading(false);
+  };
+
+  if (loading) {
+    return <LoadingMessage message="Creating your account..." />;
+  }
+
   return (
     <View>
-      <UserProfileCard user={user} />
+      <UserProfileCard user={user} userRoles={userRoles} />
       <UserProfileInformation user={user} />
       <ActionButtonsUserProfile user={user} />
-      <RequestToBeCriticUserProfile user={user} />
+      <RequestToBeCriticUserProfile user={user} userRoles={userRoles} />
     </View>
   );
 };

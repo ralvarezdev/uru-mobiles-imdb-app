@@ -6,7 +6,7 @@ const RootTabBarIcon = (props: { name: React.ComponentProps<typeof FontAwesome>[
   return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
 };
 
-const IconMovies = ({ color }: { color: string }) => <RootTabBarIcon name="heart" color={color} />;
+const IconMovies = ({ color }: { color: string }) => <RootTabBarIcon name="home" color={color} />;
 const IconMyProfile = ({ color }: { color: string }) => <RootTabBarIcon name="user" color={color} />;
 
 export default function RootTabLayout() {
@@ -16,9 +16,9 @@ export default function RootTabLayout() {
         headerShown: false,
       }}>
       <Tabs.Screen
-        name="movies/index"
+        name="home/index"
         options={{
-          title: "Movies",
+          title: "Home",
           tabBarIcon: IconMovies,
         }}
       />

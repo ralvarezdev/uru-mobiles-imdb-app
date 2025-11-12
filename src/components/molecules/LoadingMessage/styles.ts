@@ -12,5 +12,6 @@ export const styles = StyleSheet.create({
     marginTop: spacing.md,
     color: colors.text.secondary,
     textAlign: 'center',
+    // textAlignVertical: 'top'
   },
 });

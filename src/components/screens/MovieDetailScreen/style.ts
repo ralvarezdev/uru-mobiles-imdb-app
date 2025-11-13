@@ -106,4 +106,49 @@ export const styles = StyleSheet.create({
     color: "#64748b",
     marginRight: 12,
   },
+
+  // Modal styles
+  modalFormContent: {
+    gap: 20,
+    paddingBottom: 20,
+  },
+  ratingSelectorContainer: {
+    marginBottom: 8,
+  },
+  modalLabel: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#0f1724",
+    marginBottom: 12,
+  },
+  starsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  starButton: {
+    padding: 4,
+  },
+  ratingText: {
+    marginTop: 8,
+    textAlign: "center",
+    fontSize: 14,
+    color: "#64748b",
+    fontWeight: "600",
+  },
+  commentInputContainer: {
+    marginTop: 8,
+  },
+  commentTextInput: {
+    backgroundColor: "#ffffff",
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
+    color: "#0f1724",
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    minHeight: 120,
+    textAlignVertical: "top",
+  },
 });

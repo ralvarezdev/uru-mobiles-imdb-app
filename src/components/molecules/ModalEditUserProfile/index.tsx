@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert } from "react-native";
+import { Alert, View } from "react-native";
 import { Button } from "../../atoms/Button";
 import { UpdateUserProfileData, User } from "@/entities/User";
 import { EditProfileForm } from "@/components/organisms/EditProfileForm";
@@ -62,10 +62,14 @@ export const ModalEditUserProfile: React.FC<ModalEditUserProfileProps> = ({ user
       onClose={onClose}
       title="Edit my profile"
       footer={
-        <>
-          <Button title="Save Changes" variant="primary" onPress={handleUpdateProfile} />
-          <Button title="Cancel" variant="secondary" onPress={onClose} />
-        </>
+        <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+          <View style={{ flex: 1 }}>
+            <Button title="Cancel" variant="secondary" onPress={onClose} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Button title="Save Changes" variant="primary" onPress={handleUpdateProfile} />
+          </View>
+        </View>
       }>
       <EditProfileForm initialData={editFormData} onDataChange={setEditFormData} />
     </Modal>

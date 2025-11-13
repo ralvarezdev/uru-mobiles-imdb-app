@@ -16,7 +16,7 @@ export default function RootTabLayout() {
         headerShown: false,
       }}>
       <Tabs.Screen
-        name="home/index"
+        name="home"
         options={{
           title: "Home",
           tabBarIcon: IconMovies,

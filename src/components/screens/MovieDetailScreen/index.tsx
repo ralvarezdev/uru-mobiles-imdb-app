@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { ScrollView, View, Text, TouchableOpacity } from "react-native";
+import { ScrollView, View, Text, TouchableOpacity, TextInput } from "react-native";
 import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 import { styles } from "./style";
 import Badge from "@/components/atoms/Badge";
@@ -8,6 +9,8 @@ import ActorChip from "@/components/molecules/ActorChip";
 import RatingBox from "@/components/molecules/RatingBox";
 import CommentCard from "@/components/organisms/CommentCard";
 import MoviePoster from "@/components/organisms/MoviePoster";
+import { Modal } from "@/components/atoms/Modal";
+import { Button } from "@/components/atoms/Button";
 
 interface MovieComment {
   user: string;
@@ -65,6 +68,27 @@ const movieMock: MovieDetail = {
 const MovieDetailScreen = () => {
   const [movie] = useState<MovieDetail>(movieMock);
   const router = useRouter();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [rating, setRating] = useState(0);
+
+  const handleOpenModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+    setCommentText("");
+    setRating(0);
+  };
+
+  const handleSubmitComment = () => {
+    // Aquí iría la lógica para enviar el comentario
+    console.log("Comentario:", commentText);
+    console.log("Rating:", rating);
+    // Por ahora solo cerramos el modal
+    handleCloseModal();
+  };
 
   return (
     <ScrollView style={styles.bg} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
@@ -118,7 +142,7 @@ const MovieDetailScreen = () => {
           <Text style={styles.commentCount}>({movie.commentCount.toLocaleString()})</Text>
         </View>
 
-        <TouchableOpacity style={styles.commentBtn}>
+        <TouchableOpacity style={styles.commentBtn} onPress={handleOpenModal}>
           <Text style={styles.commentBtnText}>Agregar mi comentario</Text>
         </TouchableOpacity>
 
@@ -134,6 +158,55 @@ const MovieDetailScreen = () => {
       </View>
 
       <View style={{ height: 48 }} />
+
+      {/* Modal para agregar comentario */}
+      <Modal
+        visible={isModalVisible}
+        onClose={handleCloseModal}
+        title="Agregar Comentario"
+        footer={
+          <View style={{ flexDirection: "row", gap: 12, width: "100%" }}>
+            <View style={{ flex: 1 }}>
+              <Button title="Cancelar" variant="secondary" onPress={handleCloseModal} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button title="Enviar" variant="primary" onPress={handleSubmitComment} disabled={!commentText.trim() || rating === 0} />
+            </View>
+          </View>
+        }>
+        <View style={styles.modalFormContent}>
+          {/* Rating Selector */}
+          <View style={styles.ratingSelectorContainer}>
+            <Text style={styles.modalLabel}>Valoración</Text>
+            <View style={styles.starsContainer}>
+              {Array.from({ length: 5 }).map((_, i) => {
+                const starValue = i + 1;
+                return (
+                  <TouchableOpacity key={i} onPress={() => setRating(starValue)} activeOpacity={0.7} style={styles.starButton}>
+                    <Ionicons name={starValue <= rating ? "star" : "star-outline"} size={32} color="#ffb400" />
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            {rating > 0 && <Text style={styles.ratingText}>{rating} de 5 estrellas</Text>}
+          </View>
+
+          {/* Comment Input */}
+          <View style={styles.commentInputContainer}>
+            <Text style={styles.modalLabel}>Comentario</Text>
+            <TextInput
+              style={styles.commentTextInput}
+              placeholder="Escribe tu comentario aquí..."
+              placeholderTextColor="#BDC3C7"
+              value={commentText}
+              onChangeText={setCommentText}
+              multiline
+              numberOfLines={6}
+              textAlignVertical="top"
+            />
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };

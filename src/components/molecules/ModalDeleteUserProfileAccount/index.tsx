@@ -5,7 +5,7 @@ import { DeleteAccountForm } from "@/components/organisms/DeleteAccountForm";
 import userService from "@/services/userService";
 import { DeleteAccountRequest } from "@ralvarezdev/proto-user-ts";
 import { useState } from "react";
-import { Alert } from "react-native/Libraries/Alert/Alert";
+import { Alert, View } from "react-native";
 
 interface ModalDeleteUserProfileAccountProps {
   visible: boolean;
@@ -64,10 +64,14 @@ export const ModalDeleteUserProfileAccount: React.FC<ModalDeleteUserProfileAccou
       onClose={onClose}
       title="Eliminar cuenta"
       footer={
-        <>
-          <Button title="Cancelar" variant="secondary" onPress={onClose} />
-          <Button title="Eliminar" variant="secondary" onPress={handleDeleteAccount} />
-        </>
+        <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+          <View style={{ flex: 1 }}>
+            <Button title="Cancelar" variant="secondary" onPress={onClose} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Button title="Eliminar" variant="secondary" onPress={handleDeleteAccount} />
+          </View>
+        </View>
       }>
       <DeleteAccountForm data={deleteFormData} onDataChange={setDeleteFormData} />
     </Modal>

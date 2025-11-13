@@ -1,4 +1,4 @@
-import { UserService as UserServiceProto, CreateAccountRequest, CreateAccountResponse } from "@ralvarezdev/proto-user-ts";
+import { MoviesService as MoviesServiceProto, SearchMoviesRequest, SearchMoviesResponse } from "@ralvarezdev/proto-movies-ts";
 
 const BASE_URL = Constants.expoConfig?.extra?.API_BASE_URL_MOVIE ?? "http://localhost:8080";
 
@@ -16,7 +16,7 @@ if (!_createClientFn) {
   throw new Error("[@connectrpc/connect] no exporta createClient ni createPromiseClient. Revisa la versión instalada.");
 }
 
-const movieClient = _createClientFn(UserServiceProto as any, transport);
+const movieClient = _createClientFn(MoviesServiceProto as any, transport);
 
 export class MovieService {
   private static _instance: MovieService | null = null;
@@ -43,13 +43,12 @@ export class MovieService {
   //     return { headers };
   //   }
 
-  public async register(input: CreateAccountRequest): Promise<CreateAccountResponse> {
+  public async search(props: SearchMoviesRequest): Promise<SearchMoviesResponse> {
     try {
-      console.log("input", BASE_URL);
-      const res = await this.client.createAccount(input);
-      console.log("res login", res);
+      const moviesResponse = await this.client.searchMovies(props);
+      console.log("res login", moviesResponse);
       // if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
-      return res as CreateAccountResponse;
+      return moviesResponse as SearchMoviesResponse;
     } catch (err: any) {
       console.error("err", err);
       throw new Error(err?.message ?? "Error al iniciar sesión");

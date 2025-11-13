@@ -14,10 +14,22 @@ import { ListUserRolesRequest, ListUserRolesResponse } from "@ralvarezdev/proto-
 import { GetMyProfileResponse, GetMyProfileRequest } from "@ralvarezdev/proto-user-ts";
 import React, { useEffect, useState } from "react";
 import { View } from "react-native";
+import type { Timestamp } from "@bufbuild/protobuf/wkt";
 
 export const UserProfile: React.FC = () => {
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<GetMyProfileResponse | undefined>();
+  const [user, setUser] = useState<GetMyProfileResponse | undefined>({
+    firstName: "Juan",
+    lastName: "Pérez",
+    birthdate: { seconds: 1699476294n, nanos: 500000000, $typeName: "google.protobuf.Timestamp" } as Timestamp,
+    username: "juanperez87",
+    email: "juan.perez@example.com",
+    emailIsVerified: true,
+    phone: "+5491123456789",
+    phoneIsVerified: false,
+    hasTotpEnabled: true,
+    $typeName: "ralvarezdev.v1.GetMyProfileResponse",
+  });
   const [userRoles, setUserRoles] = useState<string[]>([]);
 
   useEffect(() => {

@@ -4,6 +4,7 @@ import { LoadingMessage } from "@/components/molecules/LoadingMessage";
 import { ModalBecomeACritic } from "@/components/molecules/ModalBecomeACritic";
 import { ModalEditUserProfile } from "@/components/molecules/ModalEditUserProfile";
 import { RequestToBeCriticUserProfile } from "@/components/molecules/RequestToBeCriticUserProfile";
+import { SecuritySectionUserProfile } from "@/components/molecules/SecuritySectionUserProfile";
 import { UserProfileCard } from "@/components/molecules/UserProfileCard";
 import { UserProfileInformation } from "@/components/molecules/UserProfileInformation";
 import { User } from "@/entities/User";
@@ -50,14 +51,15 @@ export const UserProfile: React.FC = () => {
     setLoading(false);
   };
 
-  if (loading) {
-    return <LoadingMessage message="Creating your account..." />;
-  }
+  // if (loading) {
+  //   return <LoadingMessage message="Creating your account..." />;
+  // }
 
   return (
     <View>
       <UserProfileCard user={user} userRoles={userRoles} />
       <UserProfileInformation user={user} />
+      <SecuritySectionUserProfile user={user} />
       <ActionButtonsUserProfile user={user} />
       <RequestToBeCriticUserProfile user={user} userRoles={userRoles} />
     </View>

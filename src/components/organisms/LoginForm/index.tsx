@@ -38,8 +38,8 @@ export const LoginForm: React.FC = () => {
         });
         return;
       }
-      const result = await authService.logIn(loginInput);
-      console.log("login", result);
+      //const result = await authService.logIn(loginInput);
+      //console.log("login", result);
       // if (authUser.id) {
       //   Toast.show({
       //     type: "success", // 'success', 'error', 'info'
@@ -47,7 +47,7 @@ export const LoginForm: React.FC = () => {
       //     text2: "Se le redireccionara al home..",
       //     position: "bottom", // o 'top'
       //   });
-      //   router.replace("/(tabs)/favorites");
+        router.replace("/profile");
       // } else {
       //   Toast.show({
       //     type: "error", // 'success', 'error', 'info'

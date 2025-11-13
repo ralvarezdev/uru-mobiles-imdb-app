@@ -1,4 +1,4 @@
-import { AuthService as AuthServiceProto, ListUserRolesRequest, ListUserRolesResponse, LogInRequest, LogInResponse } from "@ralvarezdev/proto-auth-ts";
+import { AuthService as AuthServiceProto, ChangeEmailRequest, ChangeEmailResponse, ChangePasswordRequest, ChangePasswordResponse, ListUserRolesRequest, ListUserRolesResponse, LogInRequest, LogInResponse } from "@ralvarezdev/proto-auth-ts";
 
 const BASE_URL = Constants.expoConfig?.extra?.API_BASE_URL_AUTH ?? "http://localhost:8080";
 
@@ -69,6 +69,28 @@ export class AuthService {
     } catch (err: any) {
       console.error('err',err);
       throw new Error(err?.message ?? "Error al obtener los roles del usuario");
+    }
+  }
+
+  public async changeEmail(newEmail: ChangeEmailRequest): Promise<ChangeEmailResponse> {
+    try {
+      const response = await this.client.changeEmail(newEmail);
+      console.log("change email response", response);
+      return response as ChangeEmailResponse;
+    } catch (err: any) {
+      console.error("err", err);
+      throw new Error(err?.message ?? "Error al cambiar el email");
+    }
+  }
+
+  public async changePassword(newPassword: ChangePasswordRequest): Promise<ChangePasswordResponse> {
+    try {
+      const response = await this.client.changePassword(newPassword);
+      console.log("change password response", response);
+      return response as ChangePasswordResponse;
+    } catch (err: any) {
+      console.error("err", err);
+      throw new Error(err?.message ?? "Error al cambiar la contraseña");
     }
   }
 

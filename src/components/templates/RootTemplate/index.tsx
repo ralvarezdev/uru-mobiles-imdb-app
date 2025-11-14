@@ -5,6 +5,7 @@ import { View, Platform } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { styles } from "./style";
+import Toast from "react-native-toast-message";
 
 interface Props {
   children: ReactNode;
@@ -20,6 +21,7 @@ export const RootTemplate: React.FC<Props> = ({ children, backgroundColor }) => 
       <View style={styles.wrapper}>
         <View style={[styles.statusBarBackground, { height: insets.top }]} />
         <View style={styles.container}>{children}</View>
+        <Toast />
       </View>
     </>
   );

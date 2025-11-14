@@ -93,7 +93,7 @@ export const ModalUpdatePassword: React.FC<ModalUpdatePasswordProps> = ({ visibl
       Toast.show({
         type: "error", // 'success', 'error', 'info'
         text1: "Could not change password. Please try again.",
-        // text2: "Se le redireccionara al login...",
+        // text2: "You will be redirected to login...",
         position: "bottom", // o 'top'
       });
     } finally {

@@ -1,6 +1,6 @@
 import { UserService as UserServiceProto, CreateAccountRequest, CreateAccountResponse, GetMyProfileRequest, GetMyProfileResponse, UpdateProfileRequest, UpdateProfileResponse, DeleteAccountResponse, DeleteAccountRequest } from "@ralvarezdev/proto-user-ts";
 import {BadRequestSchema, ErrorInfo, ErrorInfoSchema} from "@/assets/errors/error_details_pb";
-import { BadRequest } from "@/assets/errors/error_details_pb";
+import { ViolationsSchema, Violations } from "@ralvarezdev/proto-user-ts/buf/validate/validate_pb";
 const BASE_URL = Constants.expoConfig?.extra?.API_BASE_URL_USER ?? "http://localhost:8080";
 
 export const transport = createConnectTransport({
@@ -52,9 +52,34 @@ export class UserService {
       // if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
       return res as CreateAccountResponse;
     } catch (err) {
-      console.log("err", err);
+      console.log("err", err, err instanceof ConnectError);
       if (err instanceof ConnectError) {
-        // Find BadRequest details
+        const violations = err.findDetails(ViolationsSchema);
+        console.log("violations", violations);
+        if (violations.length > 0) {
+          console.log("Validation violations found:", violations);
+          violations.forEach(violationGroup => {
+            if (violationGroup.violations) {
+              violationGroup.violations.forEach(violation => {
+                const fieldPath = violation.field?.elements
+                  ?.map(e => {
+                    if (e.fieldName) return e.fieldName;
+                    if (e.fieldNumber) return `field_${e.fieldNumber}`;
+                    return 'unknown';
+                  })
+                  .join('.') || 'unknown';
+                
+                console.log(`Field Path: ${fieldPath}`);
+                console.log(`Rule ID: ${violation.ruleId || 'N/A'}`);
+                console.log(`Message: ${violation.message || 'N/A'}`);
+                if (violation.forKey) {
+                  console.log(`For Key: ${violation.forKey}`);
+                }
+              });
+            }
+          });
+        }
+
         const badRequest = err.findDetails(BadRequestSchema);
         console.log("badRequest", badRequest);
         if (badRequest.length > 0) {
@@ -62,9 +87,12 @@ export class UserService {
           badRequest[0].fieldViolations.forEach(violation => {
             console.log(`Field: ${violation.field}`);
             console.log(`Description: ${violation.description}`);
+            if (violation.reason) {
+              console.log(`Reason: ${violation.reason}`);
+            }
           });
         }
-        // Find ErrorInfo details
+
         const errorInfo = err.findDetails(ErrorInfoSchema);
         console.log("errorInfo", errorInfo);
         if (errorInfo.length > 0) {
@@ -73,6 +101,7 @@ export class UserService {
           console.log("Metadata:", errorInfo[0].metadata);
         }
       }
+      throw err;
     }
   }
 

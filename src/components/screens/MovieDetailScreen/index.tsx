@@ -141,7 +141,7 @@ const MovieDetailScreen = () => {
       Toast.show({
         type: "error",
         text1: "Error",
-        text2: "No se proporcionó un ID de película",
+        text2: "Movie ID was not provided",
         position: "bottom",
       });
       router.back();

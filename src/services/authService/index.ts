@@ -62,7 +62,7 @@ export class AuthService {
 
   public async getMyRoles(input: ListUserRolesRequest): Promise<ListUserRolesResponse> {
     try {
-      const userRoles = await this.client.listRoles(input);
+      const userRoles = await this.client.listUserRoles(input);
       console.log('user roles', userRoles);
       // if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
       return userRoles as ListUserRolesResponse;
@@ -91,6 +91,27 @@ export class AuthService {
     } catch (err: any) {
       console.error("err", err);
       throw new Error(err?.message ?? "Error al cambiar la contraseña");
+    }
+  }
+
+  public async requestCriticRole(): Promise<any> {
+    try {
+      // TODO: Replace with actual proto types when available
+      // Expected types: RequestCriticRoleRequest, RequestCriticRoleResponse
+      // The method name might be: requestCriticRole, requestRole, or similar
+      const request = {
+        $typeName: "ralvarezdev.v1.RequestCriticRoleRequest",
+      };
+      
+      // Try to call the method - adjust method name based on actual proto definition
+      const response = await this.client.requestCriticRole?.(request) 
+        ?? await this.client.requestRole?.(request);
+      
+      console.log("request critic role response", response);
+      return response;
+    } catch (err: any) {
+      console.error("err", err);
+      throw new Error(err?.message ?? "Error al solicitar ser crítico");
     }
   }
 

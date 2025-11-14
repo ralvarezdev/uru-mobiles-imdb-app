@@ -8,7 +8,6 @@ import { Button } from "@/components/atoms/Button";
 import { router } from "expo-router";
 import { CreateAccountRequest } from "@ralvarezdev/proto-user-ts";
 import { LoadingMessage } from "@/components/molecules/LoadingMessage";
-import authService from "@/services/authService";
 import Toast from "react-native-toast-message";
 import userService from "@/services/userService";
 
@@ -22,11 +21,12 @@ interface FormErrors {
 
 export const UserRegisterForm: React.FC = () => {
   const [formData, setFormData] = useState<CreateAccountRequest>({
-    firstName: "Yegli",
-    lastName: "Montanez",
-    username: "yeglistar",
-    password: "yeglistar",
-    email: "yegli_08@hotmail.com",
+    firstName: "Yegli1",
+    lastName: "Montanez1",
+    username: "yeglistar1",
+    password: "P4$sw0rD#12345678",
+    // password: "%hc1£`=2@[g#{m(AqHZL3D9|@-*z(LQ=kwl8!'[ZxETBQX1d2j",
+    email: "montanezyeglimar4@gmail.com",
     $typeName: "ralvarezdev.v1.CreateAccountRequest",
   } as CreateAccountRequest);
 
@@ -105,10 +105,30 @@ export const UserRegisterForm: React.FC = () => {
       newErrors.password = "Password is required";
       if (!errorMessage) errorMessage = "Password is required";
       isValid = false;
-    } else if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
-      if (!errorMessage) errorMessage = "Password must be at least 8 characters";
+    } else if (formData.password.length < 16) {
+      newErrors.password = "Password must be at least 16 characters";
+      if (!errorMessage) errorMessage = "Password must be at least 16 characters";
       isValid = false;
+    } else {
+      // Count uppercase letters, special characters, and numbers
+      const uppercaseCount = (formData.password.match(/[A-Z]/g) || []).length;
+      const specialCharCount = (formData.password.match(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~£]/g) || []).length;
+      const numberCount = (formData.password.match(/[0-9]/g) || []).length;
+
+      // Check requirements
+      if (uppercaseCount < 2) {
+        newErrors.password = "Password must contain at least 2 uppercase letters";
+        if (!errorMessage) errorMessage = "Password must contain at least 2 uppercase letters";
+        isValid = false;
+      } else if (specialCharCount < 2) {
+        newErrors.password = "Password must contain at least 2 special characters";
+        if (!errorMessage) errorMessage = "Password must contain at least 2 special characters";
+        isValid = false;
+      } else if (numberCount < 4) {
+        newErrors.password = "Password must contain at least 4 numbers";
+        if (!errorMessage) errorMessage = "Password must contain at least 4 numbers";
+        isValid = false;
+      }
     }
 
     setErrors(newErrors);
@@ -130,29 +150,29 @@ export const UserRegisterForm: React.FC = () => {
     setLoading(true);
     try {
       // const registerInput: CreateAccountRequest = { ...user, password, avatar: "" };
-      const userRegistered = await userService.register(formData);
-      console.log("userRegistered", userRegistered);
-      // if (userRegistered.id) {
-      //   Toast.show({
-      //     type: "success", // 'success', 'error', 'info'
-      //     text1: "Se ha registrado exitosamente",
-      //     text2: "Se le redireccionara al login...",
-      //     position: "bottom", // o 'top'
-      //   });
-      //   router.replace("/");
-      // } else {
-      //   Toast.show({
-      //     type: "error", // 'success', 'error', 'info'
-      //     text1: "Datos incorrectos",
-      //     text2: "Por favor, verifique que haya rellenado todos los datos.",
-      //     position: "bottom", // o 'top'
-      //   });
-      // }
+      const userRegisteredResponse = await userService.register(formData);
+      console.log("userRegisteredResponse", userRegisteredResponse);
+      if (userRegisteredResponse?.$typeName === "ralvarezdev.v1.CreateAccountResponse") {
+        Toast.show({
+          type: "success", // 'success', 'error', 'info'
+          text1: "Account created successfully",
+          text2: "You will be redirected to login...",
+          position: "bottom", // o 'top'
+        });
+        router.replace("/");
+      } else {
+        Toast.show({
+          type: "error", // 'success', 'error', 'info'
+          text1: "Invalid data",
+          text2: "Please verify that you have filled in all the required fields.",
+          position: "bottom", // o 'top'
+        });
+      }
     } catch (error) {
       Toast.show({
         type: "error", // 'success', 'error', 'info'
-        text1: "Hubo un problema con su solicitud. ",
-        text2: `Por favor, intentelo de nuevo mas tarde.`,
+        text1: "There was a problem with your request",
+        text2: "Please try again later.",
         position: "bottom", // o 'top'
       });
     }

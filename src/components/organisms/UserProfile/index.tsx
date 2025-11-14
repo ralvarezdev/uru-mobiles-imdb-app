@@ -1,39 +1,33 @@
-import { Modal } from "@/components/atoms/Modal";
 import { ActionButtonsUserProfile } from "@/components/molecules/ActionButtonsUserProfile";
 import { LoadingMessage } from "@/components/molecules/LoadingMessage";
-import { ModalBecomeACritic } from "@/components/molecules/ModalBecomeACritic";
-import { ModalEditUserProfile } from "@/components/molecules/ModalEditUserProfile";
+import { LogoutButtonUserProfile } from "@/components/molecules/LogoutButtonUserProfile";
 import { RequestToBeCriticUserProfile } from "@/components/molecules/RequestToBeCriticUserProfile";
 import { SecuritySectionUserProfile } from "@/components/molecules/SecuritySectionUserProfile";
 import { UserProfileCard } from "@/components/molecules/UserProfileCard";
 import { UserProfileInformation } from "@/components/molecules/UserProfileInformation";
-import { User } from "@/entities/User";
 import authService from "@/services/authService";
 import userService from "@/services/userService";
-import { ListUserRolesRequest, ListUserRolesResponse, LogOutRequest } from "@ralvarezdev/proto-auth-ts";
+import { ListUserRolesRequest } from "@ralvarezdev/proto-auth-ts";
 import { GetMyProfileResponse, GetMyProfileRequest } from "@ralvarezdev/proto-user-ts";
 import React, { useEffect, useState } from "react";
 import { View, ScrollView } from "react-native";
-import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { styles } from "./style";
-import { Button } from "@/components/atoms/Button";
-import { useRouter } from "expo-router";
 
 export const UserProfile: React.FC = () => {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<GetMyProfileResponse | undefined>({
-    firstName: "Juan",
-    lastName: "Pérez",
-    birthdate: { seconds: 1699476294n, nanos: 500000000, $typeName: "google.protobuf.Timestamp" } as Timestamp,
-    username: "juanperez87",
-    email: "juan.perez@example.com",
-    emailIsVerified: true,
-    phone: "+5491123456789",
-    phoneIsVerified: false,
-    hasTotpEnabled: true,
-    $typeName: "ralvarezdev.v1.GetMyProfileResponse",
-  });
+  const [user, setUser] = useState<GetMyProfileResponse | undefined>();
+  // const [user, setUser] = useState<GetMyProfileResponse | undefined>({
+  //   firstName: "Juan",
+  //   lastName: "Pérez",
+  //   birthdate: { seconds: 1699476294n, nanos: 500000000, $typeName: "google.protobuf.Timestamp" } as Timestamp,
+  //   username: "juanperez87",
+  //   email: "juan.perez@example.com",
+  //   emailIsVerified: true,
+  //   phone: "+5491123456789",
+  //   phoneIsVerified: false,
+  //   hasTotpEnabled: true,
+  //   $typeName: "ralvarezdev.v1.GetMyProfileResponse",
+  // });
   const [userRoles, setUserRoles] = useState<string[]>([]);
 
   useEffect(() => {
@@ -67,22 +61,9 @@ export const UserProfile: React.FC = () => {
     setLoading(false);
   };
 
-  const handleLogout = async () => {
-    // TODO: Uncomment when ready to use logout API
-    // try {
-    //   const logoutRequest: LogOutRequest = {
-    //     $typeName: "ralvarezdev.v1.LogOutRequest",
-    //   };
-    //   await authService.logOut(logoutRequest);
-    // } catch (error) {
-    //   console.error("Error logging out:", error);
-    // }
-    router.push("/");
-  };
-
-  // if (loading) {
-  //   return <LoadingMessage message="Creating your account..." />;
-  // }
+  if (loading) {
+    return <LoadingMessage message="Load user profile..." />;
+  }
 
   return (
     <View style={styles.container}>
@@ -96,11 +77,9 @@ export const UserProfile: React.FC = () => {
         keyboardShouldPersistTaps="handled">
         <UserProfileInformation user={user} />
         <SecuritySectionUserProfile user={user} />
-        <ActionButtonsUserProfile user={user} />
         <RequestToBeCriticUserProfile user={user} userRoles={userRoles} />
-        <View style={styles.logoutButtonContainer}>
-          <Button title="Logout" onPress={handleLogout} variant="secondary" />
-        </View>
+        <ActionButtonsUserProfile user={user} />
+        <LogoutButtonUserProfile />
       </ScrollView>
     </View>
   );

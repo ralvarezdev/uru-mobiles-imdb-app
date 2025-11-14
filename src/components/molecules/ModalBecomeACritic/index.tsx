@@ -1,6 +1,7 @@
 import { Button } from "@/components/atoms/Button";
 import { Modal } from "@/components/atoms/Modal";
 import { CriticModalContent } from "@/components/organisms/CriticContent";
+import authService from "@/services/authService";
 import { useState } from "react";
 import { View } from "react-native";
 import Toast from "react-native-toast-message";
@@ -16,8 +17,8 @@ export const ModalBecomeACritic: React.FC<ModalBecomeACriticProps> = ({ visible,
   const handleRequestCritic = async () => {
     setLoading(true);
     try {
-      // Aquí iría la llamada al API
-      // await api.requestCriticStatus();
+      // Call the API to request critic role
+      await authService.requestCriticRole();
 
       console.log("Solicitud de crítico enviada");
       Toast.show({
@@ -27,11 +28,12 @@ export const ModalBecomeACritic: React.FC<ModalBecomeACriticProps> = ({ visible,
         position: "bottom",
       });
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error al solicitar ser crítico:", error);
       Toast.show({
         type: "error",
-        text1: "Could not send request. Please try again.",
+        text1: "Could not send request",
+        text2: error?.message ?? "Please try again later.",
         position: "bottom",
       });
     } finally {

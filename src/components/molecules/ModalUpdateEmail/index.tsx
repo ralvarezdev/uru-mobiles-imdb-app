@@ -80,7 +80,7 @@ export const ModalUpdateEmail: React.FC<ModalUpdateEmailProps> = ({ visible, onC
       Toast.show({
         type: "success", // 'success', 'error', 'info'
         text1: "Email changed successfully!",
-        // text2: "Se le redireccionara al login...",
+        // text2: "You will be redirected to login...",
         position: "bottom", // o 'top'
       });
       onConfirm(newEmail);
@@ -93,7 +93,7 @@ export const ModalUpdateEmail: React.FC<ModalUpdateEmailProps> = ({ visible, onC
       Toast.show({
         type: "error", // 'success', 'error', 'info'
         text1: "Could not change email. Please try again.",
-        // text2: "Se le redireccionara al login...",
+        // text2: "You will be redirected to login...",
         position: "bottom", // o 'top'
       });
     } finally {

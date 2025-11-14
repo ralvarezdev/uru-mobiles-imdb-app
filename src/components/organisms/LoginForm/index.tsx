@@ -17,9 +17,9 @@ interface FormErrors {
 
 export const LoginForm: React.FC = () => {
   const [loginInput, setLoginInput] = useState<LogInRequest>({
-    password: "yeglistar",
-    twoFactorCode: { value: "", case: "emailCode" },
+    twoFactorCode: { value: undefined, case: undefined },
     username: "yeglistar",
+    password: "%hc1£`=2@[g#{m(AqHZL3D9|@-*z(LQ=kwl8!'[ZxETBQX1d2j",
   } as LogInRequest);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({
@@ -68,29 +68,28 @@ export const LoginForm: React.FC = () => {
 
     setLoading(true);
     try {
-      // const result = await authService.logIn(loginInput);
-      // console.log("login", result);
-      // if (authUser.id) {
-      //   Toast.show({
-      //     type: "success", // 'success', 'error', 'info'
-      //     text1: "Usuario autenticado",
-      //     text2: "Se le redireccionara al home..",
-      //     position: "bottom", // o 'top'
-      //   });
-      router.replace("/(tabs)/home");
-      // } else {
-      //   Toast.show({
-      //     type: "error", // 'success', 'error', 'info'
-      //     text1: "Usuario no encontrado",
-      //     text2: "Por favor, verifique email y contraseña.",
-      //     position: "bottom", // o 'top'
-      //   });
-      // }
+      const result = await authService.logIn(loginInput);
+      if (result?.$typeName === "ralvarezdev.v1.LogInResponse") {
+        Toast.show({
+          type: "success", // 'success', 'error', 'info'
+          text1: "Login successful",
+          text2: "You will be redirected to home...",
+          position: "bottom", // o 'top'
+        });
+        router.replace("/(tabs)/home");
+      } else {
+        Toast.show({
+          type: "error", // 'success', 'error', 'info'
+          text1: "User not found",
+          text2: "Please verify your username and password.",
+          position: "bottom", // o 'top'
+        });
+      }
     } catch (error) {
       Toast.show({
         type: "error", // 'success', 'error', 'info'
-        text1: "Hubo un problema con su solicitud. ",
-        text2: `Por favor, intentelo de nuevo mas tarde.`,
+        text1: "There was a problem with your request",
+        text2: "Please try again later.",
         position: "bottom", // o 'top'
       });
     }
@@ -98,7 +97,7 @@ export const LoginForm: React.FC = () => {
   };
 
   if (loading) {
-    return <LoadingMessage message="Iniciando sesion..." />;
+    return <LoadingMessage message="Signing in..." />;
   }
   return (
     <View style={styles.container}>
@@ -128,7 +127,7 @@ export const LoginForm: React.FC = () => {
         icon="🔒"
       />
 
-      <Button title="Iniciar Sesión" onPress={handleOnLogin} loading={loading} />
+      <Button title="Sign In" onPress={handleOnLogin} loading={loading} />
 
       <Text style={styles.registerText}>
         You don't have an account?{" "}

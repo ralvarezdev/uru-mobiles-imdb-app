@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import { ScrollView, View } from "react-native";
+import { View } from "react-native";
 import { Button } from "../../atoms/Button";
 import { styles } from "./style";
 import { Text } from "@/components/atoms/Text";
-import { User } from "@/entities/User";
 import { ModalBecomeACritic } from "../ModalBecomeACritic";
 import { GetMyProfileResponse } from "@ralvarezdev/proto-user-ts";
 
@@ -14,10 +13,12 @@ interface RequestToBeCriticUserProfileProps {
 export const RequestToBeCriticUserProfile: React.FC<RequestToBeCriticUserProfileProps> = ({ user, userRoles }) => {
   const [isCriticModalVisible, setIsCriticModalVisible] = useState(false);
 
+  // Only show the button if user is NOT already a critic
+  const isCritic = userRoles.includes("critic");
+  
   return (
-    <View>
-      {/* {user.role !== "critic" && ( */}
-      {userRoles.includes("critic") && (
+    <View style={styles.container}>
+      {!isCritic && (
         <View style={styles.criticPromoCard}>
           <View style={styles.criticPromoHeader}>
             <Text style={styles.criticPromoIcon}>🎭</Text>

@@ -2,8 +2,19 @@ import { AuthService as AuthServiceProto, ChangeEmailRequest, ChangeEmailRespons
 
 const BASE_URL = Constants.expoConfig?.extra?.API_BASE_URL_AUTH ?? "http://localhost:8080";
 
+// Custom fetch to capture response headers
+let capturedHeaders: Headers | null = null as Headers | null;
+
+const customFetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+  const response = await fetch(input, init);
+  // Store headers for later access - clone headers to avoid issues
+  capturedHeaders = new Headers(response.headers);
+  return response;
+};
+
 export const transport = createConnectTransport({
   baseUrl: BASE_URL,
+  fetch: customFetch,
 });
 
 import * as Connect from "@connectrpc/connect";
@@ -50,12 +61,63 @@ export class AuthService {
 
   public async logIn(input: LogInRequest): Promise<LogInResponse> {
     try {
+      // Reset captured headers before making the request
+      capturedHeaders = null;
+      
+      // Make the request using Connect RPC client
       const res = await this.client.logIn(input);
       console.log('res login', res);
-      if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
+
+      // Extract tokens from captured response headers
+      let accessToken: string | null = null;
+      let refreshToken: string | null = null;
+
+      if (capturedHeaders) {
+        // Check for custom headers (X-Access-Token, X-Refresh-Token)
+        const xAccessToken = (capturedHeaders as Headers).get('X-Access-Token');
+        const xRefreshToken = (capturedHeaders as Headers).get('X-Refresh-Token');
+
+        if (xAccessToken) {
+          accessToken = xAccessToken;
+        }
+        if (xRefreshToken) {
+          refreshToken = xRefreshToken;
+        }
+
+        // Also check Set-Cookie headers if custom headers are not available
+        if (!accessToken || !refreshToken) {
+          const setCookieHeader = (capturedHeaders as Headers).get('Set-Cookie');
+          if (setCookieHeader) {
+            // Parse Set-Cookie header: "X-Access-Token=value; Path=/; HttpOnly, X-Refresh-Token=value; Path=/; HttpOnly"
+            const cookies = setCookieHeader.split(',').map((c: string) => c.trim());
+            
+            for (const cookie of cookies) {
+              const accessTokenMatch = cookie.match(/X-Access-Token=([^;]+)/);
+              const refreshTokenMatch = cookie.match(/X-Refresh-Token=([^;]+)/);
+              
+              if (accessTokenMatch && !accessToken) {
+                accessToken = decodeURIComponent(accessTokenMatch[1]);
+              }
+              if (refreshTokenMatch && !refreshToken) {
+                refreshToken = decodeURIComponent(refreshTokenMatch[1]);
+              }
+            }
+          }
+        }
+
+        console.log('tokens from headers - accessToken:', accessToken ? 'present' : 'missing', 'refreshToken:', refreshToken ? 'present' : 'missing');
+      }
+
+      // Store tokens if found in headers
+      if (accessToken || refreshToken) {
+        console.log('accessToken', accessToken);
+        console.log('refreshToken', refreshToken);
+        this.setTokens(accessToken, refreshToken);
+      }
+
       return res as LogInResponse;
     } catch (err: any) {
-      console.error('err',err);
+      console.error('err', err);
       throw new Error(err?.message ?? "Error al iniciar sesión");
     }
   }

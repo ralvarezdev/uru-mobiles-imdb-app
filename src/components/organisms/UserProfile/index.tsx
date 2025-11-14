@@ -44,22 +44,22 @@ export const UserProfile: React.FC = () => {
     setLoading(false);
   };
 
-  useEffect(() => {
-    if (user?.username) {
-      loadUserRoles();
-    }
-  }, [user]);
+  // useEffect(() => {
+  //   if (user?.username) {
+  //     loadUserRoles();
+  //   }
+  // }, [user]);
 
-  const loadUserRoles = async () => {
-    setLoading(true);
-    const getUserRolesRequest: ListUserRolesRequest = {
-      username: user!.username,
-      $typeName: "ralvarezdev.v1.ListUserRolesRequest",
-    };
-    const userRoles = await authService.getMyRoles(getUserRolesRequest);
-    setUserRoles(userRoles?.roleNames || []);
-    setLoading(false);
-  };
+  // const loadUserRoles = async () => {
+  //   setLoading(true);
+  //   const getUserRolesRequest: ListUserRolesRequest = {
+  //     username: user!.username,
+  //     $typeName: "ralvarezdev.v1.ListUserRolesRequest",
+  //   };
+  //   const userRoles = await authService.getMyRoles(getUserRolesRequest);
+  //   setUserRoles(userRoles?.roleNames || []);
+  //   setLoading(false);
+  // };
 
   if (loading) {
     return <LoadingMessage message="Load user profile..." />;
@@ -77,7 +77,7 @@ export const UserProfile: React.FC = () => {
         keyboardShouldPersistTaps="handled">
         <UserProfileInformation user={user} />
         <SecuritySectionUserProfile user={user} />
-        <RequestToBeCriticUserProfile user={user} userRoles={userRoles} />
+        {/* <RequestToBeCriticUserProfile user={user} userRoles={userRoles} /> */}
         <ActionButtonsUserProfile user={user} />
         <LogoutButtonUserProfile />
       </ScrollView>

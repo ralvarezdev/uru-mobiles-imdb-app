@@ -1,25 +1,61 @@
-import { AuthService as AuthServiceProto, ChangeEmailRequest, ChangeEmailResponse, ChangePasswordRequest, ChangePasswordResponse, ListUserRolesRequest, ListUserRolesResponse, LogInRequest, LogInResponse, LogOutRequest, LogOutResponse } from "@ralvarezdev/proto-auth-ts";
-
+import { AuthService as AuthServiceProto, ChangeEmailRequest, ChangeEmailResponse, ChangePasswordRequest, ChangePasswordResponse, ListUserRolesRequest, ListUserRolesResponse, LogInRequest, LogInResponse, LogOutRequest, LogOutResponse, RefreshTokenRequest, RefreshTokenResponse } from "@ralvarezdev/proto-auth-ts";
+import * as Connect from "@connectrpc/connect";
+import { createConnectTransport } from "@connectrpc/connect-web";
+import Constants from "expo-constants";
 const BASE_URL = Constants.expoConfig?.extra?.API_BASE_URL_AUTH ?? "http://localhost:8080";
 
 // Custom fetch to capture response headers
 let capturedHeaders: Headers | null = null as Headers | null;
 
-const customFetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-  const response = await fetch(input, init);
+// Base fetch that captures headers and includes refresh token when needed
+const baseFetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+  // Add X-Refresh-Token header if refreshTokenValue is set (for refreshToken calls)
+  const headers = new Headers(init?.headers);
+  if (refreshTokenValue) {
+    headers.set('X-Refresh-Token', refreshTokenValue);
+  }
+  
+  const response = await fetch(input, {
+    ...init,
+    headers,
+    credentials: 'include', // Important for cookies
+  });
+  
   // Store headers for later access - clone headers to avoid issues
   capturedHeaders = new Headers(response.headers);
   return response;
 };
 
+// Special variable to store refresh token for refreshToken requests
+let refreshTokenValue: string | null = null;
+
+// Create authenticated fetch wrapper with lazy initialization
+let authenticatedFetchPromise: Promise<typeof fetch> | null = null;
+
+function getAuthenticatedFetch(): typeof fetch {
+  if (!authenticatedFetchPromise) {
+    authenticatedFetchPromise = (async () => {
+      const tokenHelper = await import("@/services/tokenHelper");
+      const authServiceInstance = AuthService.instance;
+      return tokenHelper.createAuthenticatedFetch(
+        baseFetch,
+        () => authServiceInstance.getAccessToken(),
+        () => authServiceInstance.refreshAccessToken()
+      );
+    })();
+  }
+  
+  // Return a fetch that waits for initialization
+  return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    const fetchFn = await authenticatedFetchPromise!;
+    return fetchFn(input, init);
+  };
+}
+
 export const transport = createConnectTransport({
   baseUrl: BASE_URL,
-  fetch: customFetch,
+  fetch: getAuthenticatedFetch(),
 });
-
-import * as Connect from "@connectrpc/connect";
-import { createConnectTransport } from "@connectrpc/connect-web";
-import Constants from "expo-constants";
 
 const _createClientFn =
   (Connect as any).createClient ??
@@ -51,6 +87,103 @@ export class AuthService {
   public setTokens(accessToken: string | null, refreshToken?: string | null) {
     this.accessToken = accessToken;
     if (refreshToken !== undefined) this.refreshToken = refreshToken;
+    // Sync tokens with other services
+    this.syncTokensWithOtherServices();
+  }
+
+  public getAccessToken(): string | null {
+    return this.accessToken;
+  }
+
+  public getRefreshToken(): string | null {
+    return this.refreshToken;
+  }
+
+  private syncTokensWithOtherServices() {
+    // Import here to avoid circular dependencies - use dynamic import
+    // Use setTimeout to defer the sync and avoid blocking
+    setTimeout(async () => {
+      try {
+        const { default: userService } = await import("@/services/userService");
+        const { default: movieService } = await import("@/services/movieService");
+        userService.setTokens(this.accessToken, this.refreshToken);
+        movieService.setTokens(this.accessToken, this.refreshToken);
+      } catch (error) {
+        console.warn("Could not sync tokens with other services:", error);
+      }
+    }, 0);
+  }
+
+  public async refreshAccessToken(): Promise<boolean> {
+    if (!this.refreshToken) {
+      console.warn('No refresh token available');
+      return false;
+    }
+
+    try {
+      // Reset captured headers before making the request
+      capturedHeaders = null;
+      
+      // Set refresh token value for the fetch wrapper to include in headers
+      refreshTokenValue = this.refreshToken;
+
+      const refreshRequest: RefreshTokenRequest = {
+        $typeName: "ralvarezdev.v1.RefreshTokenRequest",
+      };
+
+      // Use the client's refreshToken method (similar to getMyRoles)
+      const res = await this.client.refreshToken(refreshRequest);
+      console.log('refresh token response', res);
+      
+      // Clear refresh token value after use
+      refreshTokenValue = null;
+
+      // Extract new tokens from captured response headers
+      let accessToken: string | null = null;
+      let refreshToken: string | null = null;
+
+      if (capturedHeaders) {
+        const xAccessToken = (capturedHeaders as Headers).get('X-Access-Token');
+        const xRefreshToken = (capturedHeaders as Headers).get('X-Refresh-Token');
+
+        if (xAccessToken) {
+          accessToken = xAccessToken;
+        }
+        if (xRefreshToken) {
+          refreshToken = xRefreshToken;
+        }
+
+        // Also check Set-Cookie headers
+        if (!accessToken || !refreshToken) {
+          const setCookieHeader = (capturedHeaders as Headers).get('Set-Cookie');
+          if (setCookieHeader) {
+            const cookies = setCookieHeader.split(',').map((c: string) => c.trim());
+            for (const cookie of cookies) {
+              const accessTokenMatch = cookie.match(/X-Access-Token=([^;]+)/);
+              const refreshTokenMatch = cookie.match(/X-Refresh-Token=([^;]+)/);
+              if (accessTokenMatch && !accessToken) {
+                accessToken = decodeURIComponent(accessTokenMatch[1]);
+              }
+              if (refreshTokenMatch && !refreshToken) {
+                refreshToken = decodeURIComponent(refreshTokenMatch[1]);
+              }
+            }
+          }
+        }
+      }
+
+      if (accessToken || refreshToken) {
+        this.setTokens(accessToken, refreshToken);
+        return true;
+      }
+
+      return false;
+    } catch (err: any) {
+      console.error('Error refreshing token:', err);
+      // If refresh fails, clear tokens
+      this.setTokens(null, null);
+      return false;
+    }
   }
 
 //   private getAuthMeta() {

@@ -6,8 +6,33 @@ import Constants from "expo-constants";
 
 const BASE_URL = Constants.expoConfig?.extra?.API_BASE_URL_MOVIE ?? "http://localhost:8080";
 
+// Import token helper to add Bearer token and auto-refresh
+import { createAuthenticatedFetch } from "@/services/tokenHelper";
+
+// Create authenticated fetch with authService functions
+let authenticatedFetchPromise: Promise<typeof fetch> | null = null;
+
+function getAuthenticatedFetch(): typeof fetch {
+  if (!authenticatedFetchPromise) {
+    authenticatedFetchPromise = (async () => {
+      const authService = (await import("@/services/authService")).default;
+      return createAuthenticatedFetch(
+        fetch,
+        () => authService.getAccessToken(),
+        () => authService.refreshAccessToken()
+      );
+    })();
+  }
+  
+  return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    const fetchFn = await authenticatedFetchPromise!;
+    return fetchFn(input, init);
+  };
+}
+
 export const transport = createConnectTransport({
   baseUrl: BASE_URL,
+  fetch: getAuthenticatedFetch(),
 });
 
 const _createClientFn = (Connect as any).createClient ?? (Connect as any).createPromiseClient ?? null;

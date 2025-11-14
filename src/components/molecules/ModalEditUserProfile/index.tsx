@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
 import { Button } from "../../atoms/Button";
 import { UpdateUserProfileData, User } from "@/entities/User";
 import { EditProfileForm } from "@/components/organisms/EditProfileForm";
 import { Modal } from "@/components/atoms/Modal";
 import { GetMyProfileResponse, UpdateProfileRequest } from "@ralvarezdev/proto-user-ts";
 import userService from "@/services/userService";
+import Toast from "react-native-toast-message";
 
 interface ModalEditUserProfileProps {
   user: GetMyProfileResponse | undefined;
@@ -13,47 +14,83 @@ interface ModalEditUserProfileProps {
   onClose: () => void;
 }
 
+interface FormErrors {
+  firstName: string;
+  lastName: string;
+}
+
 export const ModalEditUserProfile: React.FC<ModalEditUserProfileProps> = ({ user, visible, onClose }) => {
-  // const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editFormData, setEditFormData] = useState<UpdateProfileRequest>({
     firstName: user?.firstName,
     lastName: user?.lastName,
     birthdate: user?.birthdate,
-    // email: user?.email,
-    // username: user?.username,
     $typeName: "ralvarezdev.v1.UpdateProfileRequest",
   });
+  const [errors, setErrors] = useState<FormErrors>({
+    firstName: "",
+    lastName: "",
+  });
+  const [loading, setLoading] = useState(false);
+
+  const validateForm = (): { isValid: boolean; errorMessage: string } => {
+    let isValid = true;
+    const newErrors: FormErrors = {
+      firstName: "",
+      lastName: "",
+    };
+    let errorMessage = "";
+
+    if (!editFormData.firstName || editFormData.firstName.trim() === "") {
+      newErrors.firstName = "First name is required";
+      errorMessage = "First name is required";
+      isValid = false;
+    } else if (editFormData.firstName.trim().length < 3) {
+      newErrors.firstName = "First name must be at least 3 characters";
+      errorMessage = "First name must be at least 3 characters";
+      isValid = false;
+    }
+
+    if (!editFormData.lastName || editFormData.lastName.trim() === "") {
+      newErrors.lastName = "Last name is required";
+      if (!errorMessage) errorMessage = "Last name is required";
+      isValid = false;
+    } else if (editFormData.lastName.trim().length < 3) {
+      newErrors.lastName = "Last name must be at least 3 characters";
+      if (!errorMessage) errorMessage = "Last name must be at least 3 characters";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return { isValid, errorMessage };
+  };
 
   const handleUpdateProfile = async () => {
+    // Validaciones de campos
+    const validation = validateForm();
+    if (!validation.isValid) {
+      return;
+    }
+
+    setLoading(true);
     try {
-      if (!editFormData.lastName || !editFormData.firstName) {
-        // if (!editFormData.lastName || !editFormData.firstName || !editFormData.email || !editFormData.username) {
-        Alert.alert("Error", "Por favor completa todos los campos requeridos");
-        return;
-      }
-
-      // if (editFormData.password && editFormData.password.length < 8) {
-      //   Alert.alert("Error", "La contraseña debe tener al menos 8 caracteres");
-      //   return;
-      // }
-
-      const resultUpdateProfile = userService.update(editFormData);
-
-      setEditFormData({
-        ...editFormData,
-        firstName: editFormData.firstName,
-        lastName: editFormData.lastName,
-        birthdate: editFormData.birthdate,
-        // email: editFormData.email,
-        // username: editFormData.username,
-      });
+      const response = await userService.update(editFormData);
 
       console.log("Perfil actualizado:", editFormData);
-      Alert.alert("✅ Éxito", "Tu perfil ha sido actualizado correctamente");
+      Toast.show({
+        type: "success",
+        text1: "Profile updated successfully!",
+        position: "bottom",
+      });
       onClose();
     } catch (error) {
       console.error("Error al actualizar perfil:", error);
-      Alert.alert("Error", "No se pudo actualizar el perfil. Inténtalo de nuevo.");
+      Toast.show({
+        type: "error",
+        text1: "Could not update profile. Please try again.",
+        position: "bottom",
+      });
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -62,7 +99,7 @@ export const ModalEditUserProfile: React.FC<ModalEditUserProfileProps> = ({ user
       onClose={onClose}
       title="Edit my profile"
       footer={
-        <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+        <View style={{ flexDirection: "row", gap: 12, width: "100%" }}>
           <View style={{ flex: 1 }}>
             <Button title="Cancel" variant="secondary" onPress={onClose} />
           </View>
@@ -71,7 +108,7 @@ export const ModalEditUserProfile: React.FC<ModalEditUserProfileProps> = ({ user
           </View>
         </View>
       }>
-      <EditProfileForm initialData={editFormData} onDataChange={setEditFormData} />
+      <EditProfileForm initialData={editFormData} onDataChange={setEditFormData} errors={errors} />
     </Modal>
   );
 };

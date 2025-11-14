@@ -1,16 +1,27 @@
-import React, { useState } from "react";
-import { ScrollView, View, Text, TouchableOpacity, TextInput } from "react-native";
-import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import React, { useState, useEffect } from "react";
+import { ScrollView, View } from "react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import {
+  AddMovieReviewRequest,
+  GetMovieDetailsRequest,
+  GetMovieDetailsResponse,
+  GetMovieReviewsRequest,
+  GetMovieReviewsResponse,
+  MovieReview,
+} from "@ralvarezdev/proto-movies-ts";
+import movieService from "@/services/movieService";
+import { LoadingMessage } from "@/components/molecules/LoadingMessage";
+import Toast from "react-native-toast-message";
 
 import { styles } from "./style";
-import Badge from "@/components/atoms/Badge";
-import ActorChip from "@/components/molecules/ActorChip";
-import RatingBox from "@/components/molecules/RatingBox";
-import CommentCard from "@/components/organisms/CommentCard";
 import MoviePoster from "@/components/organisms/MoviePoster";
-import { Modal } from "@/components/atoms/Modal";
-import { Button } from "@/components/atoms/Button";
+import { MovieRatings } from "@/components/organisms/MovieRatings";
+import { MovieSynopsis } from "@/components/organisms/MovieSynopsis";
+import { MovieMetaInfo } from "@/components/organisms/MovieMetaInfo";
+import { MovieCast } from "@/components/organisms/MovieCast";
+import { MovieComments } from "@/components/organisms/MovieComments";
+import { AddReviewModal } from "@/components/organisms/AddReviewModal";
+import { MovieNotFound } from "@/components/organisms/MovieNotFound";
 
 interface MovieComment {
   user: string;
@@ -38,60 +49,293 @@ interface MovieDetail {
   comments: MovieComment[];
 }
 
-const movieMock: MovieDetail = {
+// Mock data for testing
+export const mockMovieDetail: MovieDetail = {
   poster: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
   title: "The Dark Knight",
-  year: 2010,
-  duration: "2h 28m",
-  genres: ["Ciencia Ficción"],
+  year: 2008,
+  duration: "2h 32m",
+  genres: ["Action", "Crime", "Drama", "Thriller"],
   ratings: {
-    users: { value: 9.2, label: "Usuarios", votes: 45280 },
-    critics: { value: 8.4, label: "Críticos", votes: 297 },
+    users: {
+      value: 9.2,
+      label: "Users",
+      votes: 45280,
+    },
+    critics: {
+      value: 8.4,
+      label: "Critics",
+      votes: 297,
+    },
   },
   synopsis:
-    "Dom Cobb es un ladrón experto en el arte de la extracción: robar secretos valiosos del subconsciente durante el estado de sueño. Esta habilidad lo ha convertido en un jugador codiciado en el tradicional mundo del espionaje corporativo, pero también lo ha convertido en un fugitivo internacional y le ha costado todo lo que amaba.",
+    "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice. With the help of allies Lt. Jim Gordon and DA Harvey Dent, Batman has been able to keep a tight lid on crime in Gotham. But when a deranged mastermind criminal known as the Joker suddenly throws the town into chaos, the caped crusader is pushed to the limits of his physical and mental endurance.",
   director: "Christopher Nolan",
-  releaseDate: "16 de julio, 2010",
-  cast: ["Leonardo DiCaprio", "Marion Cotillard", "Tom Hardy", "Ellen Page", "Joseph Gordon Levitt"],
-  commentCount: 2458,
+  releaseDate: "July 18, 2008",
+  cast: ["Christian Bale", "Heath Ledger", "Aaron Eckhart", "Michael Caine", "Gary Oldman", "Maggie Gyllenhaal", "Morgan Freeman"],
+  commentCount: 1247,
   comments: [
     {
-      user: "María García",
-      badge: "Usuarios",
+      user: "John Smith",
+      badge: "User",
       ago: "2h",
       rating: 5,
-      text: "Una obra maestra técnica de Christopher Nolan que juega magistralmente con la estructura narrativa en múltiples niveles. La cinematografía de Wally Pfister es impecable, y la banda sonora de Hans Zimmer lleva cada escena.",
+      text: "An absolute masterpiece! Heath Ledger's performance as the Joker is phenomenal. This is one of the best superhero movies ever made. The cinematography, the score, and the storytelling are all top-notch.",
+    },
+    {
+      user: "Sarah Johnson",
+      badge: "Critic",
+      ago: "5h",
+      rating: 5,
+      text: "Christopher Nolan delivers a dark, complex, and emotionally resonant film that transcends the superhero genre. The Dark Knight is not just a great comic book movie—it's a great film period. The moral complexity and character development are exceptional.",
+    },
+    {
+      user: "Mike Davis",
+      badge: "User",
+      ago: "1d",
+      rating: 4,
+      text: "Really enjoyed this movie! The action sequences are incredible and the plot keeps you engaged throughout. The only reason I'm not giving it 5 stars is because I found some parts a bit too long, but overall it's fantastic.",
+    },
+    {
+      user: "Emily Chen",
+      badge: "User",
+      ago: "2d",
+      rating: 5,
+      text: "This is cinema at its finest. Every scene is crafted with precision. The tension builds perfectly, and the performances are outstanding across the board. A must-watch for any film lover!",
+    },
+    {
+      user: "Robert Williams",
+      badge: "Critic",
+      ago: "3d",
+      rating: 5,
+      text: "The Dark Knight redefined what a superhero movie could be. It's a crime epic that happens to feature Batman. The themes of chaos, order, and moral ambiguity are explored with depth and sophistication. Heath Ledger's Joker is one of cinema's greatest villains.",
+    },
+    {
+      user: "Lisa Anderson",
+      badge: "User",
+      ago: "4d",
+      rating: 4,
+      text: "Great movie with amazing performances. The Joker is terrifying and fascinating at the same time. The movie does a great job of showing the psychological battle between Batman and the Joker. Highly recommend!",
     },
   ],
 };
 
 const MovieDetailScreen = () => {
-  const [movie] = useState<MovieDetail>(movieMock);
+  const { movieId } = useLocalSearchParams();
+  // const movieId = params.movieId ? parseInt(params.movieId as string, 10) : null;
   const router = useRouter();
+  const [movie, setMovie] = useState<MovieDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [commentText, setCommentText] = useState("");
-  const [rating, setRating] = useState(0);
+  const [submittingComment, setSubmittingComment] = useState(false);
 
-  const handleOpenModal = () => {
-    setIsModalVisible(true);
+  useEffect(() => {
+    // Para pruebas, descomenta estas líneas:
+    setMovie(mockMovieDetail);
+    setLoading(false);
+    return;
+    if (movieId) {
+      loadMovieDetail();
+    } else {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "No se proporcionó un ID de película",
+        position: "bottom",
+      });
+      router.back();
+    }
+  }, [movieId]);
+  // En lugar de cargar desde la API, usar el mock:
+
+  const loadMovieDetail = async () => {
+    if (!movieId) return;
+
+    setLoading(true);
+    try {
+      const request: GetMovieDetailsRequest = {
+        id: parseInt(movieId as string, 10),
+        $typeName: "ralvarezdev.v1.GetMovieDetailsRequest" as const,
+      };
+      const response: GetMovieDetailsResponse = await movieService.getDetail(request);
+
+      // Mapear la respuesta a la interfaz MovieDetail
+      const releaseDate = response.releaseDate?.seconds ? new Date(Number(response.releaseDate.seconds) * 1000) : null;
+      const year = releaseDate ? releaseDate.getFullYear() : 0;
+      const formattedDate = releaseDate
+        ? releaseDate.toLocaleDateString("es-ES", { year: "numeric", month: "long", day: "numeric" })
+        : "Date not available";
+
+      const runtime = response.runtime || 0;
+      const hours = Math.floor(runtime / 60);
+      const minutes = runtime % 60;
+      const duration = runtime > 0 ? `${hours}h ${minutes}m` : "Duration not available";
+
+      const genres = response.genres?.map((g) => g.name) || [];
+
+      const movieDetail: MovieDetail = {
+        poster: response.posterUuid || "",
+        title: response.title || "",
+        year,
+        duration,
+        genres,
+        ratings: {
+          users: {
+            value: response.ratingAverageUsers || 0,
+            label: "Users",
+            votes: response.ratingCountUsers || 0,
+          },
+          critics: {
+            value: response.ratingAverageCritics || 0,
+            label: "Critics",
+            votes: response.ratingCountCritics || 0,
+          },
+        },
+        synopsis: response.overview || "",
+        director: "Director not available", // TODO: obtener del endpoint de credits cuando esté disponible
+        releaseDate: formattedDate,
+        cast: [], // TODO: obtener del endpoint de credits cuando esté disponible
+        commentCount: 0, // Se actualiza cuando se cargan las reviews
+        comments: [], // Se actualiza cuando se cargan las reviews
+      };
+
+      setMovie(movieDetail);
+
+      // Cargar las reviews después de cargar el detalle
+      await loadMovieReviews();
+    } catch (error: any) {
+      console.error("Error loading movie detail:", error);
+      setNotFound(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleCloseModal = () => {
-    setIsModalVisible(false);
-    setCommentText("");
-    setRating(0);
+  const loadMovieReviews = async () => {
+    if (!movieId) return;
+
+    try {
+      const request: GetMovieReviewsRequest = {
+        id: parseInt(movieId as string, 10),
+        page: 1,
+        $typeName: "ralvarezdev.v1.GetMovieReviewsRequest" as const,
+      };
+      const response: GetMovieReviewsResponse = await movieService.getReviews(request);
+
+      // Mapear las reviews a la interfaz MovieComment
+      const comments: MovieComment[] =
+        response.movieReviews?.map((review: MovieReview) => {
+          const createdAt = review.createdAt?.seconds ? new Date(Number(review.createdAt.seconds) * 1000) : null;
+
+          // Calcular tiempo transcurrido
+          let ago = "";
+          if (createdAt) {
+            const now = new Date();
+            const diffInSeconds = Math.floor((now.getTime() - createdAt.getTime()) / 1000);
+
+            if (diffInSeconds < 60) {
+              ago = `${diffInSeconds}s`;
+            } else if (diffInSeconds < 3600) {
+              const minutes = Math.floor(diffInSeconds / 60);
+              ago = `${minutes}m`;
+            } else if (diffInSeconds < 86400) {
+              const hours = Math.floor(diffInSeconds / 3600);
+              ago = `${hours}h`;
+            } else {
+              const days = Math.floor(diffInSeconds / 86400);
+              ago = `${days}d`;
+            }
+          }
+
+          return {
+            user: `User ${review.userId}`, // TODO: obtener nombre de usuario cuando esté disponible
+            badge: review.isCritic ? "Critic" : "User",
+            ago,
+            rating: Math.round(review.rating),
+            text: review.review || "",
+          };
+        }) || [];
+
+      // Actualizar el estado de la película con los comentarios
+      setMovie((prevMovie) => {
+        if (!prevMovie) return prevMovie;
+        return {
+          ...prevMovie,
+          commentCount: response.totalResults || 0,
+          comments,
+        };
+      });
+    } catch (error: any) {
+      console.error("Error loading movie reviews:", error);
+      // No mostramos error al usuario, solo logueamos el error
+      // Las reviews son opcionales
+    }
   };
 
-  const handleSubmitComment = () => {
-    // Aquí iría la lógica para enviar el comentario
-    console.log("Comentario:", commentText);
-    console.log("Rating:", rating);
-    // Por ahora solo cerramos el modal
-    handleCloseModal();
+  const handleSubmitReview = async (rating: number, review: string) => {
+    if (!movieId) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Movie ID is required",
+        position: "bottom",
+      });
+      return;
+    }
+
+    setSubmittingComment(true);
+    try {
+      const request: AddMovieReviewRequest = {
+        id: parseInt(movieId as string, 10),
+        rating: rating,
+        review: review.trim() || undefined,
+        $typeName: "ralvarezdev.v1.AddMovieReviewRequest" as const,
+      };
+
+      await movieService.addReview(request);
+
+      Toast.show({
+        type: "success",
+        text1: "Review added successfully",
+        text2: "Your review has been posted",
+        position: "bottom",
+      });
+
+      setIsModalVisible(false);
+
+      // Recargar los comentarios después de agregar uno nuevo
+      await loadMovieReviews();
+    } catch (error: any) {
+      console.error("Error adding review:", error);
+      Toast.show({
+        type: "error",
+        text1: "Error adding review",
+        text2: error?.message || "Could not add your review. Please try again.",
+        position: "bottom",
+      });
+    } finally {
+      setSubmittingComment(false);
+    }
   };
+
+  if (loading) {
+    return <LoadingMessage message="Loading movie..." />;
+  }
+
+  if (notFound || !movie) {
+    return <MovieNotFound onBack={() => router.back()} />;
+  }
 
   return (
-    <ScrollView style={styles.bg} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.bg}
+      contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={true}
+      scrollEnabled={true}
+      nestedScrollEnabled={true}
+      keyboardShouldPersistTaps="handled"
+      bounces={true}>
       <MoviePoster
         poster={movie.poster}
         title={movie.title}
@@ -101,112 +345,24 @@ const MovieDetailScreen = () => {
         onBack={() => router.back()}
       />
 
-      {/* Fila de valoraciones sin contenedor extra */}
-      <View style={styles.ratingsRow}>
-        <RatingBox label="Usuarios" votes={movie.ratings.users.votes} value={movie.ratings.users.value} />
-        <RatingBox label="Críticos" votes={movie.ratings.critics.votes} value={movie.ratings.critics.value} color="#ff7a45" />
-      </View>
+      <MovieRatings usersRating={movie.ratings.users} criticsRating={movie.ratings.critics} />
 
-      {/* Sinopsis */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Sinopsis</Text>
-        <Text style={styles.sectionText}>{movie.synopsis}</Text>
-      </View>
+      <MovieSynopsis synopsis={movie.synopsis} />
 
-      {/* Director y Fecha */}
-      <View style={styles.metaRow}>
-        <View style={styles.metaCard}>
-          <Badge bg="#eaf2ff">🎬 Director</Badge>
-          <Text style={styles.metaValue}>{movie.director}</Text>
-        </View>
-        <View style={styles.metaCard}>
-          <Badge bg="#eaf2ff">📅 Fecha de Estreno</Badge>
-          <Text style={styles.metaValue}>{movie.releaseDate}</Text>
-        </View>
-      </View>
+      <MovieMetaInfo director={movie.director} releaseDate={movie.releaseDate} />
 
-      {/* Actores */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Actores Principales</Text>
-        <View style={styles.chipsRow}>
-          {movie.cast.map((actor, idx) => (
-            <ActorChip key={idx} name={actor} />
-          ))}
-        </View>
-      </View>
+      <MovieCast cast={movie.cast} />
 
-      {/* Comentarios */}
-      <View style={styles.commentsRow}>
-        <View style={styles.commentHeader}>
-          <Text style={styles.sectionTitle}>Comentarios</Text>
-          <Text style={styles.commentCount}>({movie.commentCount.toLocaleString()})</Text>
-        </View>
-
-        <TouchableOpacity style={styles.commentBtn} onPress={handleOpenModal}>
-          <Text style={styles.commentBtnText}>Agregar mi comentario</Text>
-        </TouchableOpacity>
-
-        <View style={styles.filterRow}>
-          <Text style={styles.commentFilterActive}>Todos</Text>
-          <Text style={styles.commentFilter}>Usuarios</Text>
-          <Text style={styles.commentFilter}>Críticos</Text>
-        </View>
-
-        {movie.comments.map((c, i) => (
-          <CommentCard key={i} {...c} />
-        ))}
-      </View>
+      <MovieComments comments={movie.comments} commentCount={movie.commentCount} onAddComment={() => setIsModalVisible(true)} />
 
       <View style={{ height: 48 }} />
 
-      {/* Modal para agregar comentario */}
-      <Modal
+      <AddReviewModal
         visible={isModalVisible}
-        onClose={handleCloseModal}
-        title="Agregar Comentario"
-        footer={
-          <View style={{ flexDirection: "row", gap: 12, width: "100%" }}>
-            <View style={{ flex: 1 }}>
-              <Button title="Cancelar" variant="secondary" onPress={handleCloseModal} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Button title="Enviar" variant="primary" onPress={handleSubmitComment} disabled={!commentText.trim() || rating === 0} />
-            </View>
-          </View>
-        }>
-        <View style={styles.modalFormContent}>
-          {/* Rating Selector */}
-          <View style={styles.ratingSelectorContainer}>
-            <Text style={styles.modalLabel}>Valoración</Text>
-            <View style={styles.starsContainer}>
-              {Array.from({ length: 5 }).map((_, i) => {
-                const starValue = i + 1;
-                return (
-                  <TouchableOpacity key={i} onPress={() => setRating(starValue)} activeOpacity={0.7} style={styles.starButton}>
-                    <Ionicons name={starValue <= rating ? "star" : "star-outline"} size={32} color="#ffb400" />
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-            {rating > 0 && <Text style={styles.ratingText}>{rating} de 5 estrellas</Text>}
-          </View>
-
-          {/* Comment Input */}
-          <View style={styles.commentInputContainer}>
-            <Text style={styles.modalLabel}>Comentario</Text>
-            <TextInput
-              style={styles.commentTextInput}
-              placeholder="Escribe tu comentario aquí..."
-              placeholderTextColor="#BDC3C7"
-              value={commentText}
-              onChangeText={setCommentText}
-              multiline
-              numberOfLines={6}
-              textAlignVertical="top"
-            />
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setIsModalVisible(false)}
+        onSubmit={handleSubmitReview}
+        submitting={submittingComment}
+      />
     </ScrollView>
   );
 };

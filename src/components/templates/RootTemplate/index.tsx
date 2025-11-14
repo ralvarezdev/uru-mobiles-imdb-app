@@ -1,8 +1,9 @@
 // src/components/templates/GlobalLayout.tsx
 import { colors } from "@/theme";
 import React, { ReactNode } from "react";
-import { StatusBar, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { View, Platform } from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { styles } from "./style";
 
 interface Props {
@@ -11,10 +12,15 @@ interface Props {
 }
 
 export const RootTemplate: React.FC<Props> = ({ children, backgroundColor }) => {
+  const insets = useSafeAreaInsets();
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
-      <View style={styles.container}>{children}</View>
-    </SafeAreaView>
+    <>
+      <StatusBar style="light" backgroundColor="#DF3D36" />
+      <View style={styles.wrapper}>
+        <View style={[styles.statusBarBackground, { height: insets.top }]} />
+        <View style={styles.container}>{children}</View>
+      </View>
+    </>
   );
 };

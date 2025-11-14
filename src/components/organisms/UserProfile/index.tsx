@@ -10,14 +10,17 @@ import { UserProfileInformation } from "@/components/molecules/UserProfileInform
 import { User } from "@/entities/User";
 import authService from "@/services/authService";
 import userService from "@/services/userService";
-import { ListUserRolesRequest, ListUserRolesResponse } from "@ralvarezdev/proto-auth-ts";
+import { ListUserRolesRequest, ListUserRolesResponse, LogOutRequest } from "@ralvarezdev/proto-auth-ts";
 import { GetMyProfileResponse, GetMyProfileRequest } from "@ralvarezdev/proto-user-ts";
 import React, { useEffect, useState } from "react";
 import { View, ScrollView } from "react-native";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { styles } from "./style";
+import { Button } from "@/components/atoms/Button";
+import { useRouter } from "expo-router";
 
 export const UserProfile: React.FC = () => {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<GetMyProfileResponse | undefined>({
     firstName: "Juan",
@@ -64,6 +67,19 @@ export const UserProfile: React.FC = () => {
     setLoading(false);
   };
 
+  const handleLogout = async () => {
+    // TODO: Uncomment when ready to use logout API
+    // try {
+    //   const logoutRequest: LogOutRequest = {
+    //     $typeName: "ralvarezdev.v1.LogOutRequest",
+    //   };
+    //   await authService.logOut(logoutRequest);
+    // } catch (error) {
+    //   console.error("Error logging out:", error);
+    // }
+    router.push("/");
+  };
+
   // if (loading) {
   //   return <LoadingMessage message="Creating your account..." />;
   // }
@@ -71,11 +87,20 @@ export const UserProfile: React.FC = () => {
   return (
     <View style={styles.container}>
       <UserProfileCard user={user} userRoles={userRoles} />
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+        scrollEnabled={true}
+        showsVerticalScrollIndicator={true}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled">
         <UserProfileInformation user={user} />
         <SecuritySectionUserProfile user={user} />
         <ActionButtonsUserProfile user={user} />
         <RequestToBeCriticUserProfile user={user} userRoles={userRoles} />
+        <View style={styles.logoutButtonContainer}>
+          <Button title="Logout" onPress={handleLogout} variant="secondary" />
+        </View>
       </ScrollView>
     </View>
   );

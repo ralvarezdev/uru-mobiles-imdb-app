@@ -1,7 +1,6 @@
 import { UserService as UserServiceProto, CreateAccountRequest, CreateAccountResponse, GetMyProfileRequest, GetMyProfileResponse, UpdateProfileRequest, UpdateProfileResponse, DeleteAccountResponse, DeleteAccountRequest } from "@ralvarezdev/proto-user-ts";
-import { BadRequest } from "@bufbuild/protobuf/google/rpc/error_details_pb";
-import { ErrorInfo } from "@bufbuild/protobuf/google/rpc/error_details_pb";
-
+import {BadRequestSchema, ErrorInfo, ErrorInfoSchema} from "@/assets/errors/error_details_pb";
+import { BadRequest } from "@/assets/errors/error_details_pb";
 const BASE_URL = Constants.expoConfig?.extra?.API_BASE_URL_USER ?? "http://localhost:8080";
 
 export const transport = createConnectTransport({
@@ -46,31 +45,35 @@ export class UserService {
   //     return { headers };
   //   }
 
-  public async register(orops: CreateAccountRequest): Promise<CreateAccountResponse> {
+  public async register(orops: CreateAccountRequest): Promise<CreateAccountResponse | undefined> {
     try {
       const res = await this.client.createAccount(orops);
       console.log("register", res);
       // if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
       return res as CreateAccountResponse;
     } catch (err) {
+      console.log("err", err);
       if (err instanceof ConnectError) {
         // Find BadRequest details
         const badRequest = err.findDetails(BadRequestSchema);
+        console.log("badRequest", badRequest);
         if (badRequest.length > 0) {
           console.log("Field violations:", badRequest[0].fieldViolations);
           badRequest[0].fieldViolations.forEach(violation => {
-            console.log(Field: ${violation.field});
-            console.log(Description: ${violation.description});
+            console.log(`Field: ${violation.field}`);
+            console.log(`Description: ${violation.description}`);
           });
         }
         // Find ErrorInfo details
         const errorInfo = err.findDetails(ErrorInfoSchema);
+        console.log("errorInfo", errorInfo);
         if (errorInfo.length > 0) {
           console.log("Reason:", errorInfo[0].reason);
           console.log("Domain:", errorInfo[0].domain);
           console.log("Metadata:", errorInfo[0].metadata);
         }
       }
+    }
   }
 
   public async me(orops: GetMyProfileRequest): Promise<GetMyProfileResponse> {

@@ -13,45 +13,45 @@ export const CriticModalContent: React.FC = () => {
         <Text style={styles.icon}>🎭</Text>
       </View>
 
-      {/* Texto principal */}
+      {/* Main Text */}
       <Text variant="body" style={styles.mainText}>
-        Al convertirte en <Text style={styles.bold}>Crítico Verificado</Text> obtendrás:
+        By becoming a <Text style={styles.bold}>Verified Critic</Text> you will get:
       </Text>
 
-      {/* Lista de beneficios */}
+      {/* Benefits List */}
       <View style={styles.benefitsList}>
         <View style={styles.benefitItem}>
           <Text style={styles.checkmark}>✅</Text>
           <Text variant="body" style={styles.benefitText}>
-            Badge de "Crítico" en tu perfil
+            "Critic" badge on your profile
           </Text>
         </View>
 
         <View style={styles.benefitItem}>
           <Text style={styles.checkmark}>✅</Text>
           <Text variant="body" style={styles.benefitText}>
-            Tus reseñas aparecen en sección especial
+            Your reviews appear in special section
           </Text>
         </View>
 
         <View style={styles.benefitItem}>
           <Text style={styles.checkmark}>✅</Text>
           <Text variant="body" style={styles.benefitText}>
-            Tus ratings cuentan como "Rating de Críticos"
+            Your ratings count as "Critic Ratings"
           </Text>
         </View>
 
         <View style={styles.benefitItem}>
           <Text style={styles.checkmark}>✅</Text>
           <Text variant="body" style={styles.benefitText}>
-            Mayor visibilidad en la plataforma
+            Greater visibility on the platform
           </Text>
         </View>
       </View>
 
-      {/* Nota final */}
+      {/* Footer Note */}
       <Text variant="body" style={styles.footerText}>
-        Este cambio se aplicará inmediatamente
+        This change will be applied immediately
       </Text>
     </View>
   );

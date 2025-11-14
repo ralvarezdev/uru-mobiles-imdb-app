@@ -1,8 +1,6 @@
-// src/components/organisms/DeleteAccountWarning.tsx
-import { Input } from "@/components/atoms/Input";
 import { Text } from "@/components/atoms/Text";
-import { DeleteAccountData } from "@/entities/User";
-import React, { useState } from "react";
+import { InputField } from "@/components/molecules/InputField";
+import React from "react";
 import { View } from "react-native";
 import { styles } from "./style";
 import { DeleteAccountRequest } from "@ralvarezdev/proto-user-ts";
@@ -10,34 +8,37 @@ import { DeleteAccountRequest } from "@ralvarezdev/proto-user-ts";
 interface DeleteAccountFormProps {
   data: DeleteAccountRequest;
   onDataChange: (data: DeleteAccountRequest) => void;
+  errors?: {
+    password?: string;
+  };
 }
 
-export const DeleteAccountForm: React.FC<DeleteAccountFormProps> = ({ data, onDataChange }) => {
-  // const [data, setData]
-  // const [password, setPassword] = useState("");
-
+export const DeleteAccountForm: React.FC<DeleteAccountFormProps> = ({ data, onDataChange, errors }) => {
   const handlePasswordChange = (value: string) => {
-    // setPassword(value);
     onDataChange({ ...data, password: value });
   };
 
   return (
-    <View>
+    <View style={styles.modalContent}>
       {/* Warning Box */}
       <View style={styles.warningBox}>
-        <Text variant="body" style={styles.warningText}>
-          <Text style={styles.bold}>⚠️ Esta acción es PERMANENTE</Text>
+        <Text style={styles.warningText}>
+          <Text style={styles.bold}>⚠️ This action is PERMANENT</Text>
           {"\n\n"}
-          Perderás:{"\n"}• Todos tus comentarios{"\n"}• Todas tus calificaciones{"\n"}• Tu historial completo
+          You will lose:{"\n"}• All your comments{"\n"}• All your ratings{"\n"}• Your complete history
         </Text>
       </View>
 
       {/* Password Input */}
       <View style={styles.fieldContainer}>
-        <Text variant="label" style={styles.label}>
-          Confirma tu contraseña
-        </Text>
-        <Input placeholder="Ingresa tu contraseña actual" value={data.password} onChangeText={handlePasswordChange} secureTextEntry={true} />
+        <InputField
+          label="Confirm your password"
+          placeholder="Enter your current password"
+          value={data.password || ""}
+          onChangeText={handlePasswordChange}
+          error={errors?.password}
+          secureTextEntry
+        />
       </View>
     </View>
   );

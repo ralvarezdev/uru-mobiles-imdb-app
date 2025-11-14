@@ -23,7 +23,7 @@ export const UserProfileInformation: React.FC<UserProfileInformationProps> = ({ 
       <View style={styles.infoCard}>
         <View style={styles.infoRow}>
           <View style={styles.infoLabel}>
-            <Text style={styles.infoIcon}>👤</Text>
+            <Text style={styles.infoIcon}>📝</Text>
             <Text variant="body" style={styles.infoLabelText}>
               First Name
             </Text>
@@ -34,7 +34,7 @@ export const UserProfileInformation: React.FC<UserProfileInformationProps> = ({ 
         </View>
         <View style={styles.infoRow}>
           <View style={styles.infoLabel}>
-            <Text style={styles.infoIcon}>👤</Text>
+            <Text style={styles.infoIcon}>🏷️</Text>
             <Text variant="body" style={styles.infoLabelText}>
               Last Name
             </Text>

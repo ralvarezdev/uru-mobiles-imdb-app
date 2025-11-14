@@ -1,4 +1,4 @@
-import { AuthService as AuthServiceProto, ChangeEmailRequest, ChangeEmailResponse, ChangePasswordRequest, ChangePasswordResponse, ListUserRolesRequest, ListUserRolesResponse, LogInRequest, LogInResponse } from "@ralvarezdev/proto-auth-ts";
+import { AuthService as AuthServiceProto, ChangeEmailRequest, ChangeEmailResponse, ChangePasswordRequest, ChangePasswordResponse, ListUserRolesRequest, ListUserRolesResponse, LogInRequest, LogInResponse, LogOutRequest, LogOutResponse } from "@ralvarezdev/proto-auth-ts";
 
 const BASE_URL = Constants.expoConfig?.extra?.API_BASE_URL_AUTH ?? "http://localhost:8080";
 
@@ -93,6 +93,18 @@ export class AuthService {
       throw new Error(err?.message ?? "Error al cambiar la contraseña");
     }
   }
+
+  // public async logOut(input: LogOutRequest): Promise<LogOutResponse> {
+  //   try {
+  //     const response = await this.client.logOut(input);
+  //     console.log("log out response", response);
+  //     this.setTokens(null, null);
+  //     return response as LogOutResponse;
+  //   } catch (err: any) {
+  //     console.error("err", err);
+  //     throw new Error(err?.message ?? "Error al cerrar sesión");
+  //   }
+  // }
 
 //   public async register(input: RegisterRequest): Promise<RegisterResponse> {
 //     try {

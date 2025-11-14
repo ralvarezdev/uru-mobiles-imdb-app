@@ -24,6 +24,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
+    flexShrink: 1,
   },
   modalContainer: {
     width: '100%',
@@ -40,7 +41,6 @@ export const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 10,
     flexDirection: 'column',
-    minHeight: 300,
   },
   header: {
     flexDirection: 'row',
@@ -76,7 +76,6 @@ export const styles = StyleSheet.create({
   body: {
     padding: 20,
     backgroundColor: '#fff',
-    flexShrink: 1,
   },
   footer: {
     flexDirection: 'row',

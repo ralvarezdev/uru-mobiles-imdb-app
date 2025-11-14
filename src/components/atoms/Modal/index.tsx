@@ -40,10 +40,13 @@ export const Modal: React.FC<ModalProps> = ({ visible, onClose, title, children,
                 {/* Body */}
                 <ScrollView
                   style={styles.body}
-                  showsVerticalScrollIndicator={false}
+                  showsVerticalScrollIndicator={true}
                   contentContainerStyle={{ paddingBottom: 10 }}
                   keyboardShouldPersistTaps="handled"
-                  nestedScrollEnabled={true}>
+                  nestedScrollEnabled={true}
+                  scrollEnabled={true}
+                  bounces={true}
+                  alwaysBounceVertical={false}>
                   {children}
                 </ScrollView>
 

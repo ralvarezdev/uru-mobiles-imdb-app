@@ -10,6 +10,11 @@ import { LoadingMessage } from "@/components/molecules/LoadingMessage";
 import Toast from "react-native-toast-message";
 import { authService } from "@/services/authService";
 
+interface FormErrors {
+  username: string;
+  password: string;
+}
+
 export const LoginForm: React.FC = () => {
   const [loginInput, setLoginInput] = useState<LogInRequest>({
     password: "yeglistar",
@@ -17,6 +22,34 @@ export const LoginForm: React.FC = () => {
     username: "yeglistar",
   } as LogInRequest);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({
+    username: "",
+    password: "",
+  });
+
+  const validateForm = (): { isValid: boolean; errorMessage: string } => {
+    let isValid = true;
+    const newErrors: FormErrors = {
+      username: "",
+      password: "",
+    };
+    let errorMessage = "";
+
+    if (!loginInput.username || loginInput.username.trim() === "") {
+      newErrors.username = "Username is required";
+      errorMessage = "Username is required";
+      isValid = false;
+    }
+
+    if (!loginInput.password || loginInput.password.trim() === "") {
+      newErrors.password = "Password is required";
+      if (!errorMessage) errorMessage = "Password is required";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return { isValid, errorMessage };
+  };
 
   const handleRegisterNavigation = () => {
     router.push("/register");
@@ -27,17 +60,14 @@ export const LoginForm: React.FC = () => {
   };
 
   const handleOnLogin = async () => {
+    // Validaciones de campos
+    const validation = validateForm();
+    if (!validation.isValid) {
+      return;
+    }
+
     setLoading(true);
     try {
-      if (!loginInput.username || loginInput.username.trim() === "" || !loginInput.password || loginInput.password.trim() === "") {
-        Toast.show({
-          type: "error", // 'success', 'error', 'info'
-          text1: "Datos incorrectos",
-          text2: "Por favor, verifique email y contraseña.",
-          position: "bottom", // o 'top'
-        });
-        return;
-      }
       // const result = await authService.logIn(loginInput);
       // console.log("login", result);
       // if (authUser.id) {
@@ -84,6 +114,7 @@ export const LoginForm: React.FC = () => {
         placeholder="Your username"
         value={loginInput.username}
         onChangeText={(text) => handleChangeLoginInput("username", text)}
+        error={errors.username}
         icon="📧"
       />
 
@@ -92,6 +123,7 @@ export const LoginForm: React.FC = () => {
         placeholder="Your password"
         value={loginInput.password}
         onChangeText={(text) => handleChangeLoginInput("password", text)}
+        error={errors.password}
         secureTextEntry={true}
         icon="🔒"
       />

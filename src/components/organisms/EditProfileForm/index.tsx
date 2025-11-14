@@ -1,5 +1,5 @@
-import { Input } from "@/components/atoms/Input";
 import { Text } from "@/components/atoms/Text";
+import { InputField } from "@/components/molecules/InputField";
 import { UpdateUserProfileData } from "@/entities/User";
 import React, { useState } from "react";
 import { View } from "react-native";
@@ -9,9 +9,13 @@ import { UpdateProfileRequest } from "@ralvarezdev/proto-user-ts";
 interface EditProfileFormProps {
   initialData: UpdateProfileRequest;
   onDataChange: (data: UpdateProfileRequest) => void;
+  errors?: {
+    firstName?: string;
+    lastName?: string;
+  };
 }
 
-export const EditProfileForm: React.FC<EditProfileFormProps> = ({ initialData, onDataChange }) => {
+export const EditProfileForm: React.FC<EditProfileFormProps> = ({ initialData, onDataChange, errors }) => {
   const [formData, setFormData] = useState<UpdateProfileRequest>(initialData);
 
   const handleChange = (field: keyof UpdateProfileRequest, value: string) => {
@@ -23,16 +27,22 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ initialData, o
   return (
     <View>
       <View style={styles.fieldContainer}>
-        <Text variant="label" style={styles.label}>
-          First name
-        </Text>
-        <Input placeholder="Juan Pérez" value={formData.firstName} onChangeText={(value) => handleChange("firstName", value)} />
+        <InputField
+          label="First name"
+          placeholder="Juan Pérez"
+          value={formData.firstName || ""}
+          onChangeText={(value) => handleChange("firstName", value)}
+          error={errors?.firstName}
+        />
       </View>
       <View style={styles.fieldContainer}>
-        <Text variant="label" style={styles.label}>
-          Last name
-        </Text>
-        <Input placeholder="Juan Pérez" value={formData.lastName} onChangeText={(value) => handleChange("lastName", value)} />
+        <InputField
+          label="Last name"
+          placeholder="Juan Pérez"
+          value={formData.lastName || ""}
+          onChangeText={(value) => handleChange("lastName", value)}
+          error={errors?.lastName}
+        />
       </View>
 
       {/* <View style={styles.fieldContainer}>

@@ -1,9 +1,16 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+  },
+  scrollViewContent: {
+    marginTop: 60,
+    paddingBottom: 20,
+  },
   safeArea: {
     flex: 1,
-    backgroundColor: '#E74C3C',
+    backgroundColor: '#DF3D36',
   },
   container: {
     flex: 1,
@@ -14,7 +21,7 @@ export const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   header: {
-    backgroundColor: '#E74C3C',
+    backgroundColor: '#DF3D36',
     paddingTop: 20,
     paddingBottom: 50,
     paddingHorizontal: 20,

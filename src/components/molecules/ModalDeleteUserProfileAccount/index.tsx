@@ -1,15 +1,19 @@
 import { Button } from "@/components/atoms/Button";
 import { Modal } from "@/components/atoms/Modal";
-import { CriticModalContent } from "@/components/organisms/CriticContent";
 import { DeleteAccountForm } from "@/components/organisms/DeleteAccountForm";
 import userService from "@/services/userService";
 import { DeleteAccountRequest } from "@ralvarezdev/proto-user-ts";
 import { useState } from "react";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
+import Toast from "react-native-toast-message";
 
 interface ModalDeleteUserProfileAccountProps {
   visible: boolean;
   onClose: () => void;
+}
+
+interface FormErrors {
+  password: string;
 }
 
 export const ModalDeleteUserProfileAccount: React.FC<ModalDeleteUserProfileAccountProps> = ({ visible, onClose }) => {
@@ -17,63 +21,99 @@ export const ModalDeleteUserProfileAccount: React.FC<ModalDeleteUserProfileAccou
     password: "",
     $typeName: "ralvarezdev.v1.DeleteAccountRequest",
   });
+  const [errors, setErrors] = useState<FormErrors>({
+    password: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const validateForm = (): { isValid: boolean; errorMessage: string } => {
+    let isValid = true;
+    const newErrors: FormErrors = {
+      password: "",
+    };
+    let errorMessage = "";
+
+    if (!deleteFormData.password || deleteFormData.password.trim() === "") {
+      newErrors.password = "Password is required to confirm";
+      errorMessage = "Password is required to confirm";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return { isValid, errorMessage };
+  };
 
   const handleDeleteAccount = async () => {
-    try {
-      // Validación
-      if (!deleteFormData.password) {
-        Alert.alert("Error", "Por favor ingresa tu contraseña para confirmar");
-        return;
-      }
-
-      // Confirmación final
-      Alert.alert("🚨 ÚLTIMA CONFIRMACIÓN", "¿Realmente quieres eliminar tu cuenta permanentemente?\n\nEsta acción NO se puede deshacer.", [
-        {
-          text: "Cancelar",
-          style: "cancel",
-        },
-        {
-          text: "Eliminar",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              // Aquí iría la llamada al API
-              // await api.deleteAccount(deleteFormData);
-              const resultDeleteProfile = userService.delete(deleteFormData);
-
-              console.log("Cuenta eliminada");
-              Alert.alert("Cuenta eliminada", "Tu cuenta ha sido eliminada permanentemente.\n\nGracias por usar CineReview.");
-              // setIsDeleteModalVisible(false);
-              onClose();
-              // Redirigir al login
-            } catch (error) {
-              Alert.alert("Error", "Contraseña incorrecta o error en el servidor");
-            }
-          },
-        },
-      ]);
-    } catch (error) {
-      console.error("Error al eliminar cuenta:", error);
-      Alert.alert("Error", "No se pudo eliminar la cuenta. Verifica tu contraseña.");
+    // Primera validación
+    const validation = validateForm();
+    if (!validation.isValid) {
+      return;
     }
+
+    // Si no ha confirmado, mostrar confirmación
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      Toast.show({
+        type: "error",
+        text1: "⚠️ Final Confirmation Required",
+        text2: "This action is PERMANENT and cannot be undone. Press Delete again to confirm.",
+        position: "bottom",
+        visibilityTime: 5000,
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await userService.delete(deleteFormData);
+      console.log("Cuenta eliminada");
+      Toast.show({
+        type: "success",
+        text1: "Account deleted successfully",
+        text2: "Your account has been permanently deleted. Thank you for using our service.",
+        position: "bottom",
+      });
+      onClose();
+      setDeleteFormData({ password: "", $typeName: "ralvarezdev.v1.DeleteAccountRequest" });
+      setConfirmDelete(false);
+    } catch (error: any) {
+      console.error("Error al eliminar cuenta:", error);
+      Toast.show({
+        type: "error",
+        text1: "Could not delete account",
+        text2: error?.message || "Incorrect password or server error. Please try again.",
+        position: "bottom",
+      });
+      setConfirmDelete(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setDeleteFormData({ password: "", $typeName: "ralvarezdev.v1.DeleteAccountRequest" });
+    setErrors({ password: "" });
+    setConfirmDelete(false);
+    onClose();
   };
 
   return (
     <Modal
       visible={visible}
-      onClose={onClose}
-      title="Eliminar cuenta"
+      onClose={handleCancel}
+      title="🗑️ Delete Account"
       footer={
-        <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+        <View style={{ flexDirection: "row", gap: 12, width: "100%" }}>
           <View style={{ flex: 1 }}>
-            <Button title="Cancelar" variant="secondary" onPress={onClose} />
+            <Button title="Cancel" variant="secondary" onPress={handleCancel} disabled={loading} />
           </View>
           <View style={{ flex: 1 }}>
-            <Button title="Eliminar" variant="secondary" onPress={handleDeleteAccount} />
+            <Button title="Delete" variant="primary" onPress={handleDeleteAccount} disabled={loading} />
           </View>
         </View>
       }>
-      <DeleteAccountForm data={deleteFormData} onDataChange={setDeleteFormData} />
+      <DeleteAccountForm data={deleteFormData} onDataChange={setDeleteFormData} errors={errors} />
     </Modal>
   );
 };

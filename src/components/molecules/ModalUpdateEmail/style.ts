@@ -1,7 +1,8 @@
 import { StyleSheet } from "react-native";
+
 export const styles = StyleSheet.create({
   modalContent: {
-    padding: 20,
+    padding: 0,
   },
   infoBox: {
     backgroundColor: "#e3f2fd",
@@ -19,19 +20,4 @@ export const styles = StyleSheet.create({
   fieldContainer: {
     marginBottom: 16,
   },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#2c3e50",
-    marginBottom: 8,
-  },
-  modalButtons: {
-    flexDirection: "row",
-    gap: 10,
-    marginTop: 20,
-  },
-  modalButton: {
-    flex: 1,
-  },
-  
 });

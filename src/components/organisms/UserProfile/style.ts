@@ -10,5 +10,10 @@ export const styles = StyleSheet.create({
   scrollViewContent: {
     paddingBottom: 20,
   },
+  logoutButtonContainer: {
+    paddingHorizontal: 16,
+    marginTop: 20,
+    marginBottom: 20,
+  },
 });
 

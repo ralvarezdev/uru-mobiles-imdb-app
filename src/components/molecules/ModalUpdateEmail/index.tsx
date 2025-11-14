@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Alert } from "react-native";
+import React, { useState, useRef } from "react";
+import { View } from "react-native";
 import { Modal } from "@/components/atoms/Modal";
 import { InputField } from "@/components/molecules/InputField";
 import { Button } from "@/components/atoms/Button";
@@ -26,21 +26,30 @@ export const ModalUpdateEmail: React.FC<ModalUpdateEmailProps> = ({ visible, onC
   const [newEmail, setNewEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({ email: "" });
+  const lastValidationError = useRef<string>("");
 
-  const validateForm = (): boolean => {
+  const validateForm = (): { isValid: boolean; errorMessage: string } => {
     let isValid = true;
     const newErrors: FormErrors = { email: "" };
+    let errorMessage = "";
 
     if (newEmail.trim() === "") {
       newErrors.email = "Email is required";
+      errorMessage = "Email is required";
       isValid = false;
     } else if (!/\S+@\S+\.\S+/.test(newEmail)) {
       newErrors.email = "Email format is invalid";
+      errorMessage = "Email format is invalid";
+      isValid = false;
+    } else if (currentEmail && newEmail.toLowerCase() === currentEmail.toLowerCase()) {
+      newErrors.email = "New email must be different from current email";
+      errorMessage = "New email must be different from current email";
       isValid = false;
     }
 
     setErrors(newErrors);
-    return isValid;
+    lastValidationError.current = errorMessage;
+    return { isValid, errorMessage };
   };
 
   // const callChangeEmail = async (email: string) => {
@@ -52,12 +61,8 @@ export const ModalUpdateEmail: React.FC<ModalUpdateEmailProps> = ({ visible, onC
   // };
 
   const handleConfirm = async () => {
-    // 1) Validaciones básicas
-    if (!validateForm()) return;
-
-    // 2) Evitar mismo correo
-    if (currentEmail && newEmail.toLowerCase() === currentEmail.toLowerCase()) {
-      Alert.alert("Error", "New email must be different from current email");
+    // Validaciones de campos
+    if (!validateForm().isValid) {
       return;
     }
 
@@ -107,28 +112,27 @@ export const ModalUpdateEmail: React.FC<ModalUpdateEmailProps> = ({ visible, onC
   }
 
   return (
-    <Modal visible={visible} onClose={handleCancel} title="📧 Change Email">
+    <Modal
+      visible={visible}
+      onClose={handleCancel}
+      title="📧 Change Email"
+      footer={
+        <View style={{ flexDirection: "row", gap: 12, width: "100%" }}>
+          <View style={{ flex: 1 }}>
+            <Button title="Cancel" variant="secondary" onPress={handleCancel} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Button title="Update Email" variant="primary" onPress={handleConfirm} disabled={loading} />
+          </View>
+        </View>
+      }>
       <View style={styles.modalContent}>
         <View style={styles.infoBox}>
           <Text style={styles.infoText}>Enter your new email address</Text>
         </View>
 
         <View style={styles.fieldContainer}>
-          <Text variant="label" style={styles.label}>
-            New Email Address
-          </Text>
-          <InputField
-            label="Your new email"
-            placeholder="new.email@example.com"
-            value={newEmail}
-            onChangeText={setNewEmail}
-            error={errors.email} // si tu Input soporta mostrar error
-          />
-        </View>
-
-        <View style={styles.modalButtons}>
-          <Button title="Cancel" onPress={handleCancel} variant="primary" />
-          <Button title="Update Email" onPress={handleConfirm} />
+          <InputField label="Your new email" placeholder="new.email@example.com" value={newEmail} onChangeText={setNewEmail} error={errors.email} />
         </View>
       </View>
     </Modal>

@@ -1,14 +1,14 @@
-import { MoviesService as MoviesServiceProto, SearchMoviesRequest, SearchMoviesResponse } from "@ralvarezdev/proto-movies-ts";
+import { MoviesService as MoviesServiceProto, SearchMoviesRequest, SearchMoviesResponse, GetMovieDetailsRequest, GetMovieDetailsResponse, AddMovieReviewRequest, AddMovieReviewResponse, GetMovieReviewsRequest, GetMovieReviewsResponse } from "@ralvarezdev/proto-movies-ts";
+
+import * as Connect from "@connectrpc/connect";
+import { createConnectTransport } from "@connectrpc/connect-web";
+import Constants from "expo-constants";
 
 const BASE_URL = Constants.expoConfig?.extra?.API_BASE_URL_MOVIE ?? "http://localhost:8080";
 
 export const transport = createConnectTransport({
   baseUrl: BASE_URL,
 });
-
-import * as Connect from "@connectrpc/connect";
-import { createConnectTransport } from "@connectrpc/connect-web";
-import Constants from "expo-constants";
 
 const _createClientFn = (Connect as any).createClient ?? (Connect as any).createPromiseClient ?? null;
 
@@ -52,6 +52,39 @@ export class MovieService {
     } catch (err: any) {
       console.error("err", err);
       throw new Error(err?.message ?? "Error al iniciar sesión");
+    }
+  }
+
+  public async getDetail(props: GetMovieDetailsRequest): Promise<GetMovieDetailsResponse> {
+    try {
+      const movieDetailResponse = await this.client.getMovieDetails(props);
+      console.log("res getDetail", movieDetailResponse);
+      return movieDetailResponse as GetMovieDetailsResponse;
+    } catch (err: any) {
+      console.error("err", err);
+      throw new Error(err?.message ?? "Error al obtener el detalle de la película");
+    }
+  }
+
+  public async addReview(props: AddMovieReviewRequest): Promise<AddMovieReviewResponse> {
+    try {
+      const reviewResponse = await this.client.addMovieReview(props);
+      console.log("res addReview", reviewResponse);
+      return reviewResponse as AddMovieReviewResponse;
+    } catch (err: any) {
+      console.error("err", err);
+      throw new Error(err?.message ?? "Error al agregar el comentario");
+    }
+  }
+
+  public async getReviews(props: GetMovieReviewsRequest): Promise<GetMovieReviewsResponse> {
+    try {
+      const reviewsResponse = await this.client.getMovieReviews(props);
+      console.log("res getReviews", reviewsResponse);
+      return reviewsResponse as GetMovieReviewsResponse;
+    } catch (err: any) {
+      console.error("err", err);
+      throw new Error(err?.message ?? "Error al obtener las reseñas");
     }
   }
 

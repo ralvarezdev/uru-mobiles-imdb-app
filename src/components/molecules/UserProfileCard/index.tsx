@@ -23,10 +23,7 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({ user, userRole
         {/* <Text style={styles.badgeText}>{user.role === "critic" ? "CRÍTICO" : "USUARIO"}</Text> */}
       </View>
       <Text variant="title" style={styles.profileName}>
-        {user?.firstName}
-      </Text>
-      <Text variant="title" style={styles.profileName}>
-        {user?.lastName}
+        {user?.firstName} {user?.lastName}
       </Text>
       <Text variant="body" style={styles.profileUsername}>
         @{user?.username}

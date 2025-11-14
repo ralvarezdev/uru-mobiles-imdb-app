@@ -35,7 +35,7 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ initialData, o
         <Input placeholder="Juan Pérez" value={formData.lastName} onChangeText={(value) => handleChange("lastName", value)} />
       </View>
 
-      <View style={styles.fieldContainer}>
+      {/* <View style={styles.fieldContainer}>
         <Text variant="label" style={styles.label}>
           Email
         </Text>
@@ -53,11 +53,11 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ initialData, o
           Username
         </Text>
         <Input placeholder="juanperez" value={formData.username} onChangeText={(value) => handleChange("username", value)} autoCapitalize="none" />
-      </View>
+      </View> */}
 
       {/* Password */}
-      <View style={styles.fieldContainer}>
-        <Text variant="label" style={styles.label}>
+      {/* <View style={styles.fieldContainer}> */}
+      {/* <Text variant="label" style={styles.label}>
           New password (optional)
         </Text>
         <Input
@@ -66,16 +66,16 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ initialData, o
           onChangeText={(value) => handleChange("password", value)}
           secureTextEntry
         />
-      </View>
+      </View> */}
 
       {/* Hi password is hint */}
-      {formData.password && formData.password.length > 0 && (
+      {/* {formData.password && formData.password.length > 0 && (
         <View style={styles.hint}>
           <Text variant="body" style={styles.hintText}>
             💡 The password must be at least 8 characters long
           </Text>
         </View>
-      )}
+      )} */}
     </View>
   );
 };

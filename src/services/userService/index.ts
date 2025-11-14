@@ -1,4 +1,6 @@
 import { UserService as UserServiceProto, CreateAccountRequest, CreateAccountResponse, GetMyProfileRequest, GetMyProfileResponse, UpdateProfileRequest, UpdateProfileResponse, DeleteAccountResponse, DeleteAccountRequest } from "@ralvarezdev/proto-user-ts";
+import { BadRequest } from "@bufbuild/protobuf/google/rpc/error_details_pb";
+import { ErrorInfo } from "@bufbuild/protobuf/google/rpc/error_details_pb";
 
 const BASE_URL = Constants.expoConfig?.extra?.API_BASE_URL_USER ?? "http://localhost:8080";
 
@@ -9,6 +11,7 @@ export const transport = createConnectTransport({
 import * as Connect from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
 import Constants from "expo-constants";
+import { ConnectError } from "@connectrpc/connect";
 
 const _createClientFn = (Connect as any).createClient ?? (Connect as any).createPromiseClient ?? null;
 
@@ -49,10 +52,25 @@ export class UserService {
       console.log("register", res);
       // if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
       return res as CreateAccountResponse;
-    } catch (err: any) {
-      console.error("err", err);
-      throw new Error(err?.message ?? "Error al registrar usuario");
-    }
+    } catch (err) {
+      if (err instanceof ConnectError) {
+        // Find BadRequest details
+        const badRequest = err.findDetails(BadRequestSchema);
+        if (badRequest.length > 0) {
+          console.log("Field violations:", badRequest[0].fieldViolations);
+          badRequest[0].fieldViolations.forEach(violation => {
+            console.log(Field: ${violation.field});
+            console.log(Description: ${violation.description});
+          });
+        }
+        // Find ErrorInfo details
+        const errorInfo = err.findDetails(ErrorInfoSchema);
+        if (errorInfo.length > 0) {
+          console.log("Reason:", errorInfo[0].reason);
+          console.log("Domain:", errorInfo[0].domain);
+          console.log("Metadata:", errorInfo[0].metadata);
+        }
+      }
   }
 
   public async me(orops: GetMyProfileRequest): Promise<GetMyProfileResponse> {
@@ -89,6 +107,7 @@ export class UserService {
       console.error("err", err);
       throw new Error(err?.message ?? "Error al eliminar el usuario");
     }
+    
   }
 
   //   public async register(input: RegisterRequest): Promise<RegisterResponse> {

@@ -13,8 +13,9 @@ import userService from "@/services/userService";
 import { ListUserRolesRequest, ListUserRolesResponse } from "@ralvarezdev/proto-auth-ts";
 import { GetMyProfileResponse, GetMyProfileRequest } from "@ralvarezdev/proto-user-ts";
 import React, { useEffect, useState } from "react";
-import { View } from "react-native";
+import { View, ScrollView } from "react-native";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
+import { styles } from "./style";
 
 export const UserProfile: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -68,12 +69,14 @@ export const UserProfile: React.FC = () => {
   // }
 
   return (
-    <View>
+    <View style={styles.container}>
       <UserProfileCard user={user} userRoles={userRoles} />
-      <UserProfileInformation user={user} />
-      <SecuritySectionUserProfile user={user} />
-      <ActionButtonsUserProfile user={user} />
-      <RequestToBeCriticUserProfile user={user} userRoles={userRoles} />
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
+        <UserProfileInformation user={user} />
+        <SecuritySectionUserProfile user={user} />
+        <ActionButtonsUserProfile user={user} />
+        <RequestToBeCriticUserProfile user={user} userRoles={userRoles} />
+      </ScrollView>
     </View>
   );
 };

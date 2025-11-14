@@ -122,6 +122,7 @@ export const UserRegisterForm: React.FC = () => {
       }
       // const registerInput: CreateAccountRequest = { ...user, password, avatar: "" };
       const userRegistered = await userService.register(formData);
+      console.log("userRegistered", userRegistered);
       // if (userRegistered.id) {
       //   Toast.show({
       //     type: "success", // 'success', 'error', 'info'

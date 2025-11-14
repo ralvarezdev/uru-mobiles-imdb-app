@@ -2,25 +2,21 @@
 import React, { useState } from "react";
 import { View, TouchableOpacity, Modal } from "react-native";
 import { ModalUpdatePassword } from "../ModalUpdatePassword";
-import {Text } from "@/components/atoms/Text";
+import { Text } from "@/components/atoms/Text";
 import { styles } from "./style";
 import { ModalUpdateEmail } from "../ModalUpdateEmail";
 import { ChangeEmailRequest, ChangePasswordRequest } from "@ralvarezdev/proto-auth-ts";
 import { GetMyProfileResponse } from "@ralvarezdev/proto-user-ts";
 
 interface SecuritySectionUserProfileProps {
-    user: GetMyProfileResponse | undefined;
+  user: GetMyProfileResponse | undefined;
   onEmailChange?: (newEmail: string) => void;
   onPasswordChange?: () => void;
 }
 
-export const SecuritySectionUserProfile: React.FC<SecuritySectionUserProfileProps> = ({
-  user,
-
-}) => {
+export const SecuritySectionUserProfile: React.FC<SecuritySectionUserProfileProps> = ({ user }) => {
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-
 
   return (
     <View style={styles.container}>
@@ -36,10 +32,7 @@ export const SecuritySectionUserProfile: React.FC<SecuritySectionUserProfileProp
           <Text style={styles.securityTitle}>Email Address</Text>
           <Text style={styles.securityValue}> {user?.email}</Text>
         </View>
-        <TouchableOpacity
-          style={styles.changeButton}
-          onPress={() => setShowEmailModal(true)}
-        >
+        <TouchableOpacity style={styles.changeButton} onPress={() => setShowEmailModal(true)}>
           <Text style={styles.changeButtonText}>Change</Text>
         </TouchableOpacity>
       </View>
@@ -50,27 +43,15 @@ export const SecuritySectionUserProfile: React.FC<SecuritySectionUserProfileProp
           <Text style={styles.securityTitle}>Password</Text>
           <Text style={styles.securityValue}>********</Text>
         </View>
-        <TouchableOpacity
-          style={styles.changeButton}
-          onPress={() => setShowPasswordModal(true)}
-        >
+        <TouchableOpacity style={styles.changeButton} onPress={() => setShowPasswordModal(true)}>
           <Text style={styles.changeButtonText}>Change</Text>
         </TouchableOpacity>
       </View>
 
       {/* Modals */}
-      <ModalUpdateEmail
-        visible={showEmailModal}
-        onClose={() => setShowEmailModal(false)}
-        onConfirm={() => {}}
-        currentEmail={user?.email}
-      />
+      <ModalUpdateEmail visible={showEmailModal} onClose={() => setShowEmailModal(false)} onConfirm={() => {}} currentEmail={user?.email} />
 
-      <ModalUpdatePassword
-        visible={showPasswordModal}
-        onClose={() => setShowPasswordModal(false)}
-        onConfirm={() => {}}
-      />
+      <ModalUpdatePassword visible={showPasswordModal} onClose={() => setShowPasswordModal(false)} onConfirm={() => {}} />
     </View>
   );
 };

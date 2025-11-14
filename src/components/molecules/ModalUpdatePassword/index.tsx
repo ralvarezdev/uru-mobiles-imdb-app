@@ -9,6 +9,7 @@ import authService from "@/services/authService";
 import { Text } from "@/components/atoms/Text";
 import { ChangePasswordRequest } from "@ralvarezdev/proto-auth-ts";
 import { InputField } from "../InputField";
+import Toast from "react-native-toast-message";
 
 interface ModalUpdatePasswordProps {
   visible: boolean;
@@ -49,25 +50,31 @@ export const ModalUpdatePassword: React.FC<ModalUpdatePasswordProps> = ({ visibl
     setLoading(true);
 
     try {
-      // Crear el request con el formato de Protobuf
       const changePasswordRequest: ChangePasswordRequest = {
         oldPassword: passwordData.oldPassword,
         newPassword: passwordData.newPassword,
         $typeName: "ralvarezdev.v1.ChangePasswordRequest",
       };
 
-      // Llamar al servicio
       const response = await authService.changePassword(changePasswordRequest);
       console.log("Password changed successfully:", response);
 
-      // Éxito
-      onConfirm(); // ✅ Ahora no pasa parámetros
+      Toast.show({
+        type: "success", // 'success', 'error', 'info'
+        text1: "Email changed successfully!",
+        // text2: "Se le redireccionara al login...",
+        position: "bottom", // o 'top'
+      });
+      onConfirm();
       setPasswordData({ oldPassword: "", newPassword: "" });
       onClose();
-
-      Alert.alert("Success", "Password changed successfully!");
     } catch (error: any) {
-      Alert.alert("Error", error.message || "Could not change password. Please try again.");
+      Toast.show({
+        type: "error", // 'success', 'error', 'info'
+        text1: "Could not change password. Please try again.",
+        // text2: "Se le redireccionara al login...",
+        position: "bottom", // o 'top'
+      });
     } finally {
       setLoading(false);
     }
@@ -86,9 +93,7 @@ export const ModalUpdatePassword: React.FC<ModalUpdatePasswordProps> = ({ visibl
     <Modal visible={visible} onClose={handleCancel} title="🔒 Change Password">
       <View style={styles.modalContent}>
         <View style={styles.infoBox}>
-          <Text style={styles.infoText}>
-            Your password must be at least 8 characters long
-          </Text>
+          <Text style={styles.infoText}>Your password must be at least 8 characters long</Text>
         </View>
 
         <View style={styles.fieldContainer}>

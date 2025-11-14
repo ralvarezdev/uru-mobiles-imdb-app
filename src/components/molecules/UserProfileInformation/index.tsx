@@ -12,8 +12,12 @@ interface UserProfileInformationProps {
 export const UserProfileInformation: React.FC<UserProfileInformationProps> = ({ user }: UserProfileInformationProps) => {
   return (
     <View style={styles.content}>
-      <View style={styles.sectionHeader}>
+      {/* <View style={styles.sectionHeader}>
         <Text variant="subtitle">Personal Information</Text>
+      </View> */}
+      <View style={styles.header}>
+        <Text style={styles.icon}>👤</Text>
+        <Text style={styles.title}>Personal Information</Text>
       </View>
 
       <View style={styles.infoCard}>
@@ -39,7 +43,7 @@ export const UserProfileInformation: React.FC<UserProfileInformationProps> = ({ 
             {user?.lastName}
           </Text>
         </View>
-        <View style={styles.infoRow}>
+        {/* <View style={styles.infoRow}>
           <View style={styles.infoLabel}>
             <Text style={styles.infoIcon}>📧</Text>
             <Text variant="body" style={styles.infoLabelText}>
@@ -60,7 +64,7 @@ export const UserProfileInformation: React.FC<UserProfileInformationProps> = ({ 
           <Text variant="body" style={styles.infoValue}>
             @{user?.username}
           </Text>
-        </View>
+        </View> */}
       </View>
     </View>
   );

@@ -8,6 +8,8 @@ import { styles } from "./style";
 import { LoadingMessage } from "../LoadingMessage";
 import { ChangeEmailRequest } from "@ralvarezdev/proto-auth-ts/ralvarezdev/v1/auth_pb";
 import authService from "@/services/authService";
+import Toast from "react-native-toast-message";
+import { router } from "expo-router";
 
 interface ModalUpdateEmailProps {
   visible: boolean;
@@ -20,12 +22,7 @@ interface FormErrors {
   email: string;
 }
 
-export const ModalUpdateEmail: React.FC<ModalUpdateEmailProps> = ({
-  visible,
-  onClose,
-  onConfirm,
-  currentEmail,
-}) => {
+export const ModalUpdateEmail: React.FC<ModalUpdateEmailProps> = ({ visible, onClose, onConfirm, currentEmail }) => {
   const [newEmail, setNewEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({ email: "" });
@@ -46,13 +43,13 @@ export const ModalUpdateEmail: React.FC<ModalUpdateEmailProps> = ({
     return isValid;
   };
 
-  const callChangeEmail = async (email: string) => {
-    const req: ChangeEmailRequest = {
-      email,
-      $typeName: "ralvarezdev.v1.ChangeEmailRequest",
-    };
-    return authService.changeEmail(req);
-  };
+  // const callChangeEmail = async (email: string) => {
+  //   const req: ChangeEmailRequest = {
+  //     email,
+  //     $typeName: "ralvarezdev.v1.ChangeEmailRequest",
+  //   };
+  //   return authService.changeEmail(req);
+  // };
 
   const handleConfirm = async () => {
     // 1) Validaciones básicas
@@ -66,17 +63,34 @@ export const ModalUpdateEmail: React.FC<ModalUpdateEmailProps> = ({
 
     setLoading(true);
     try {
-      await callChangeEmail(newEmail);
-
+      // await callChangeEmail(newEmail);
+      const req: ChangeEmailRequest = {
+        email: newEmail,
+        $typeName: "ralvarezdev.v1.ChangeEmailRequest",
+      };
+      const response = await authService.changeEmail(req);
       // Notificar al padre y limpiar
+
+      // Alert.alert("Success", "Email changed successfully!");
+      Toast.show({
+        type: "success", // 'success', 'error', 'info'
+        text1: "Email changed successfully!",
+        // text2: "Se le redireccionara al login...",
+        position: "bottom", // o 'top'
+      });
       onConfirm(newEmail);
       setNewEmail("");
       setErrors({ email: "" });
       onClose();
-
-      Alert.alert("Success", "Email changed successfully!");
+      // router.replace("/");
     } catch (error: any) {
-      Alert.alert("Error", error?.message ?? "Could not change email. Please try again.");
+      // Alert.alert("Error", error?.message ?? "Could not change email. Please try again.");
+      Toast.show({
+        type: "error", // 'success', 'error', 'info'
+        text1: "Could not change email. Please try again.",
+        // text2: "Se le redireccionara al login...",
+        position: "bottom", // o 'top'
+      });
     } finally {
       setLoading(false);
     }
@@ -108,7 +122,7 @@ export const ModalUpdateEmail: React.FC<ModalUpdateEmailProps> = ({
             placeholder="new.email@example.com"
             value={newEmail}
             onChangeText={setNewEmail}
-            error={errors.email}   // si tu Input soporta mostrar error
+            error={errors.email} // si tu Input soporta mostrar error
           />
         </View>
 

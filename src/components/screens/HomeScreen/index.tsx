@@ -3,8 +3,9 @@ import { ScreenTemplate } from "@/components/templates/ScreenTemplate";
 import { HomeHeader } from "@/components/organisms/HomeHeader";
 import { SearchBar } from "@/components/molecules/SearchBar";
 import { FiltersChips } from "@/components/molecules/FiltersChips";
+import { SortSelector } from "@/components/molecules/SortSelector";
 import { MovieList } from "@/components/organisms/MovieList";
-import { SimpleMovie, Genre, DiscoverMoviesRequest, SearchMoviesRequest } from "@ralvarezdev/proto-movies-ts";
+import { SimpleMovie, Genre, DiscoverMoviesRequest, SearchMoviesRequest, SortBy } from "@ralvarezdev/proto-movies-ts";
 import { LoadingMessage } from "@/components/molecules/LoadingMessage";
 import movieService from "@/services/movieService";
 import Toast from "react-native-toast-message";
@@ -12,6 +13,7 @@ import { isParsedInternalServerError } from "@/utils/errorHandler";
 
 export const HomeScreen = () => {
   const [selectedGenre, setSelectedGenre] = useState<number | null>(null);
+  const [sortBy, setSortBy] = useState<SortBy | null>(null);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingGenres, setLoadingGenres] = useState(false);
@@ -23,10 +25,10 @@ export const HomeScreen = () => {
     loadGenres();
   }, []);
 
-  // Load movies when search or genre changes
+  // Load movies when search, genre, or sort changes
   useEffect(() => {
     loadMovies();
-  }, [search, selectedGenre]);
+  }, [search, selectedGenre, sortBy]);
 
   const loadGenres = async () => {
     setLoadingGenres(true);
@@ -96,6 +98,7 @@ export const HomeScreen = () => {
           withPeople: [],
           withWatchProviders: [],
           withWatchMonetizationTypes: [],
+          ...(sortBy !== null && { sortBy }),
         };
 
         // Commented out: original getTopRatedMovies implementation
@@ -122,7 +125,7 @@ export const HomeScreen = () => {
     } finally {
       setLoading(false);
     }
-  }, [search, selectedGenre]);
+  }, [search, selectedGenre, sortBy]);
 
   const handleError = () => {
     const parsedError = movieService.getLastError();
@@ -168,6 +171,7 @@ export const HomeScreen = () => {
           <HomeHeader />
           <SearchBar value={search} onChange={setSearch} />
           <FiltersChips selected={selectedGenre} onSelect={(value) => setSelectedGenre(typeof value === "number" ? value : null)} genres={genres} />
+          <SortSelector selected={sortBy} onSelect={setSortBy} />
         </>
       }
       // footer={<Tag label="Cargando más películas..." color="" textColor="" />}

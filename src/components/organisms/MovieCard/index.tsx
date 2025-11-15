@@ -37,7 +37,9 @@ export const MovieCard = ({ movie }: MovieCardProps) => {
       </View>
       <View style={styles.infoContainer}>
         <Text style={styles.title}>{movie.title}</Text>
-        <Text style={styles.subtitle}>{movie.overview}</Text>
+        <Text style={styles.subtitle} numberOfLines={3} ellipsizeMode="tail">
+          {movie.overview}
+        </Text>
         <View style={styles.scoresRow}>
           <View style={styles.scoreBlock}>
             <Text style={styles.scoreLabel}>Usuarios</Text>

@@ -59,7 +59,7 @@ export const styles = StyleSheet.create({
     color: "#888",
     fontSize: 12,
     marginBottom: 10,
-    height:60
+    lineHeight: 18,
   },
   scoresRow: {
     flexDirection: "row",

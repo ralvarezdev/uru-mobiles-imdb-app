@@ -5,6 +5,7 @@ import authService from "@/services/authService";
 import { useState } from "react";
 import { View } from "react-native";
 import Toast from "react-native-toast-message";
+import { LoadingMessage } from "../LoadingMessage";
 
 interface ModalBecomeACriticProps {
   visible: boolean;
@@ -52,11 +53,11 @@ export const ModalBecomeACritic: React.FC<ModalBecomeACriticProps> = ({ visible,
             <Button title="Cancel" variant="secondary" onPress={onClose} disabled={loading} />
           </View>
           <View style={{ flex: 1 }}>
-            <Button title="Confirm" variant="primary" onPress={handleRequestCritic} disabled={loading} />
+            <Button title="Confirm" variant="primary" onPress={handleRequestCritic} disabled={loading} loading={loading} />
           </View>
         </View>
       }>
-      <CriticModalContent />
+      {loading ? <LoadingMessage message="Sending request..." /> : <CriticModalContent />}
     </Modal>
   );
 };

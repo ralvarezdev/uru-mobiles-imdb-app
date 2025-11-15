@@ -99,6 +99,26 @@ export class AuthService {
     return this.refreshToken;
   }
 
+  public clearTokens(): void {
+    // Clear tokens atomically to prevent race conditions
+    // Store old values to check if sync is needed
+    const hadTokens = !!(this.accessToken || this.refreshToken);
+    
+    this.accessToken = null;
+    this.refreshToken = null;
+    // Clear refreshTokenValue used for refresh requests
+    refreshTokenValue = null;
+    
+    // Only sync if tokens were actually set (avoid unnecessary syncs)
+    // Use setTimeout to defer sync and prevent race conditions with concurrent requests
+    if (hadTokens) {
+      // Defer sync to next tick to avoid interfering with requests in flight
+      setTimeout(() => {
+        this.syncTokensWithOtherServices();
+      }, 0);
+    }
+  }
+
   private syncTokensWithOtherServices() {
     // Import here to avoid circular dependencies - use dynamic import
     // Use setTimeout to defer the sync and avoid blocking
@@ -310,17 +330,30 @@ export class AuthService {
     }
   }
 
-  // public async logOut(input: LogOutRequest): Promise<LogOutResponse> {
-  //   try {
-  //     const response = await this.client.logOut(input);
-  //     console.log("log out response", response);
-  //     this.setTokens(null, null);
-  //     return response as LogOutResponse;
-  //   } catch (err: any) {
-  //     console.error("err", err);
-  //     throw new Error(err?.message ?? "Error al cerrar sesión");
-  //   }
-  // }
+  public async logOut(input: LogOutRequest): Promise<LogOutResponse> {
+    try {
+      const response = await this.client.logOut(input);
+      console.log("log out response", response);
+      
+      // Only clear tokens if logout was successful
+      // Use setTimeout to defer token clearing slightly to ensure:
+      // 1. The logout request has fully completed (including any response processing)
+      // 2. Any concurrent requests that started before logout can complete
+      // 3. We don't interfere with the logout request itself which may need the token
+      if (response.$typeName === "ralvarezdev.v1.LogOutResponse") {
+        // Defer token clearing to avoid race conditions with concurrent requests
+        // Small delay ensures logout request and any immediate follow-up requests complete
+        setTimeout(() => {
+          this.clearTokens();
+        }, 50);
+      }
+      
+      return response as LogOutResponse;
+    } catch (err: any) {
+      console.error("err", err);
+      throw new Error(err?.message ?? "Error al cerrar sesión");
+    }
+  }
 
 //   public async register(input: RegisterRequest): Promise<RegisterResponse> {
 //     try {

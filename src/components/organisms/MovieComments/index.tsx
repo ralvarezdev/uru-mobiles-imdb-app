@@ -40,9 +40,13 @@ export const MovieComments: React.FC<MovieCommentsProps> = ({ comments, commentC
 
       <CommentFilters activeFilter={activeFilter} onFilterChange={setActiveFilter} />
 
-      {filteredComments.map((comment, i) => (
-        <CommentCard key={i} {...comment} />
-      ))}
+      {filteredComments.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No comments have been added yet.</Text>
+        </View>
+      ) : (
+        filteredComments.map((comment, i) => <CommentCard key={i} {...comment} />)
+      )}
     </View>
   );
 };

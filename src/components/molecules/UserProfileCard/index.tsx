@@ -9,17 +9,18 @@ import { ListRolesResponse } from "@ralvarezdev/proto-auth-ts";
 
 interface UserProfileCardProps {
   user: GetMyProfileResponse | undefined;
-  userRoles: string[];
+  // userRoles: string[];
 }
 
-export const UserProfileCard: React.FC<UserProfileCardProps> = ({ user, userRoles }: UserProfileCardProps) => {
+export const UserProfileCard: React.FC<UserProfileCardProps> = ({ user }: UserProfileCardProps) => {
   return (
     <View style={styles.profileCard}>
       <View style={styles.avatar}>
         <Text style={styles.avatarIcon}>👤</Text>
       </View>
       <View style={styles.badge}>
-        <Text style={styles.badgeText}>{userRoles.includes("critic") ? "CRÍTICO" : "USUARIO"}</Text>
+        <Text style={styles.badgeText}>USUARIO</Text>
+        {/* <Text style={styles.badgeText}>{userRoles.includes("critic") ? "CRÍTICO" : "USUARIO"}</Text> */}
         {/* <Text style={styles.badgeText}>{user.role === "critic" ? "CRÍTICO" : "USUARIO"}</Text> */}
       </View>
       <Text variant="title" style={styles.profileName}>

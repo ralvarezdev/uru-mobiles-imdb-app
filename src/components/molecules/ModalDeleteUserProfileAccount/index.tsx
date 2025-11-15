@@ -6,6 +6,7 @@ import { DeleteAccountRequest } from "@ralvarezdev/proto-user-ts";
 import { useState } from "react";
 import { View } from "react-native";
 import Toast from "react-native-toast-message";
+import { LoadingMessage } from "../LoadingMessage";
 
 interface ModalDeleteUserProfileAccountProps {
   visible: boolean;
@@ -109,11 +110,15 @@ export const ModalDeleteUserProfileAccount: React.FC<ModalDeleteUserProfileAccou
             <Button title="Cancel" variant="secondary" onPress={handleCancel} disabled={loading} />
           </View>
           <View style={{ flex: 1 }}>
-            <Button title="Delete" variant="primary" onPress={handleDeleteAccount} disabled={loading} />
+            <Button title="Delete" variant="primary" onPress={handleDeleteAccount} disabled={loading} loading={loading} />
           </View>
         </View>
       }>
-      <DeleteAccountForm data={deleteFormData} onDataChange={setDeleteFormData} errors={errors} />
+      {loading ? (
+        <LoadingMessage message="Deleting account..." />
+      ) : (
+        <DeleteAccountForm data={deleteFormData} onDataChange={setDeleteFormData} errors={errors} />
+      )}
     </Modal>
   );
 };

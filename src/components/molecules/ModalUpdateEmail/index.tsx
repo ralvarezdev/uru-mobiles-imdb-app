@@ -61,35 +61,35 @@ export const ModalUpdateEmail: React.FC<ModalUpdateEmailProps> = ({ visible, onC
   // };
 
   const handleConfirm = async () => {
-    // Validaciones de campos
     if (!validateForm().isValid) {
       return;
     }
 
     setLoading(true);
     try {
-      // await callChangeEmail(newEmail);
       const req: ChangeEmailRequest = {
         email: newEmail,
         $typeName: "ralvarezdev.v1.ChangeEmailRequest",
       };
       const response = await authService.changeEmail(req);
-      // Notificar al padre y limpiar
-
-      // Alert.alert("Success", "Email changed successfully!");
-      Toast.show({
-        type: "success", // 'success', 'error', 'info'
-        text1: "Email changed successfully!",
-        // text2: "You will be redirected to login...",
-        position: "bottom", // o 'top'
-      });
-      onConfirm(newEmail);
-      setNewEmail("");
-      setErrors({ email: "" });
-      onClose();
-      // router.replace("/");
+      if (response.$typeName === "ralvarezdev.v1.ChangeEmailResponse") {
+        Toast.show({
+          type: "success", // 'success', 'error', 'info'
+          text1: "Email changed successfully!",
+          position: "bottom", // o 'top'
+        });
+        onConfirm(newEmail);
+        setNewEmail("");
+        setErrors({ email: "" });
+        onClose();
+      } else {
+        Toast.show({
+          type: "error", // 'success', 'error', 'info'
+          text1: "Could not change email. Please try again.",
+          position: "bottom", // o 'top'
+        });
+      }
     } catch (error: any) {
-      // Alert.alert("Error", error?.message ?? "Could not change email. Please try again.");
       Toast.show({
         type: "error", // 'success', 'error', 'info'
         text1: "Could not change email. Please try again.",
@@ -107,10 +107,6 @@ export const ModalUpdateEmail: React.FC<ModalUpdateEmailProps> = ({ visible, onC
     onClose();
   };
 
-  if (loading) {
-    return <LoadingMessage message="Updating email..." />;
-  }
-
   return (
     <Modal
       visible={visible}
@@ -119,22 +115,26 @@ export const ModalUpdateEmail: React.FC<ModalUpdateEmailProps> = ({ visible, onC
       footer={
         <View style={{ flexDirection: "row", gap: 12, width: "100%" }}>
           <View style={{ flex: 1 }}>
-            <Button title="Cancel" variant="secondary" onPress={handleCancel} />
+            <Button title="Cancel" variant="secondary" onPress={handleCancel} disabled={loading} />
           </View>
           <View style={{ flex: 1 }}>
-            <Button title="Update Email" variant="primary" onPress={handleConfirm} disabled={loading} />
+            <Button title="Update Email" variant="primary" onPress={handleConfirm} disabled={loading} loading={loading} />
           </View>
         </View>
       }>
-      <View style={styles.modalContent}>
-        <View style={styles.infoBox}>
-          <Text style={styles.infoText}>Enter your new email address</Text>
-        </View>
+      {loading ? (
+        <LoadingMessage message="Updating email..." />
+      ) : (
+        <View style={styles.modalContent}>
+          <View style={styles.infoBox}>
+            <Text style={styles.infoText}>Enter your new email address</Text>
+          </View>
 
-        <View style={styles.fieldContainer}>
-          <InputField label="Your new email" placeholder="new.email@example.com" value={newEmail} onChangeText={setNewEmail} error={errors.email} />
+          <View style={styles.fieldContainer}>
+            <InputField label="Your new email" placeholder="new.email@example.com" value={newEmail} onChangeText={setNewEmail} error={errors.email} />
+          </View>
         </View>
-      </View>
+      )}
     </Modal>
   );
 };

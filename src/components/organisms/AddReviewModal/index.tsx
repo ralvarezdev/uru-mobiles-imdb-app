@@ -4,6 +4,7 @@ import { Modal } from "@/components/atoms/Modal";
 import { Button } from "@/components/atoms/Button";
 import { StarRating } from "@/components/molecules/StarRating";
 import { ReviewInput } from "@/components/molecules/ReviewInput";
+import { LoadingMessage } from "@/components/molecules/LoadingMessage";
 
 interface FormErrors {
   rating: string;
@@ -110,10 +111,14 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
           </View>
         </View>
       }>
-      <View style={{ gap: 20, paddingBottom: 20 }}>
-        <StarRating rating={rating} onRatingChange={handleRatingChange} error={errors.rating} />
-        <ReviewInput value={review} onChangeText={handleReviewChange} error={errors.review} />
-      </View>
+      {submitting ? (
+        <LoadingMessage message="Submitting review..." />
+      ) : (
+        <View style={{ gap: 20, paddingBottom: 20 }}>
+          <StarRating rating={rating} onRatingChange={handleRatingChange} error={errors.rating} />
+          <ReviewInput value={review} onChangeText={handleReviewChange} error={errors.review} />
+        </View>
+      )}
     </Modal>
   );
 };

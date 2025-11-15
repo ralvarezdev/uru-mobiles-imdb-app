@@ -2,24 +2,43 @@ import React from "react";
 import { View } from "react-native";
 import { Button } from "../../atoms/Button";
 import { styles } from "./style";
-import { useRouter } from "expo-router";
+import { router } from "expo-router";
 import authService from "@/services/authService";
 import { LogOutRequest } from "@ralvarezdev/proto-auth-ts";
+import Toast from "react-native-toast-message";
 
 export const LogoutButtonUserProfile: React.FC = () => {
-  const router = useRouter();
-
   const handleLogout = async () => {
-    // TODO: Uncomment when ready to use logout API
-    // try {
-    //   const logoutRequest: LogOutRequest = {
-    //     $typeName: "ralvarezdev.v1.LogOutRequest",
-    //   };
-    //   await authService.logOut(logoutRequest);
-    // } catch (error) {
-    //   console.error("Error logging out:", error);
-    // }
-    router.push("/");
+    try {
+      const logoutRequest: LogOutRequest = {
+        $typeName: "ralvarezdev.v1.LogOutRequest",
+      };
+      const response = await authService.logOut(logoutRequest);
+
+      if (response.$typeName === "ralvarezdev.v1.LogOutResponse") {
+        Toast.show({
+          type: "success",
+          text1: "Logout successful",
+          text2: "You have been logged out successfully.",
+          position: "bottom",
+        });
+        router.push("/");
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Could not logout. Please try again.",
+          position: "bottom",
+        });
+      }
+    } catch (error: any) {
+      // console.error("Error logging out:", error);
+      Toast.show({
+        type: "error",
+        text1: "Could not logout. Please try again.",
+        text2: error?.message || "An error occurred while logging out.",
+        position: "bottom",
+      });
+    }
   };
 
   return (
@@ -28,4 +47,3 @@ export const LogoutButtonUserProfile: React.FC = () => {
     </View>
   );
 };
-

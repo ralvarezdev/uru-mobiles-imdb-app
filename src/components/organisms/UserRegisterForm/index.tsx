@@ -10,6 +10,7 @@ import { CreateAccountRequest } from "@ralvarezdev/proto-user-ts";
 import { LoadingMessage } from "@/components/molecules/LoadingMessage";
 import Toast from "react-native-toast-message";
 import userService from "@/services/userService";
+import { ConnectError } from "@connectrpc/connect";
 
 interface FormErrors {
   firstName: string;
@@ -105,31 +106,32 @@ export const UserRegisterForm: React.FC = () => {
       newErrors.password = "Password is required";
       if (!errorMessage) errorMessage = "Password is required";
       isValid = false;
-    } else if (formData.password.length < 16) {
-      newErrors.password = "Password must be at least 16 characters";
-      if (!errorMessage) errorMessage = "Password must be at least 16 characters";
-      isValid = false;
-    } else {
-      // Count uppercase letters, special characters, and numbers
-      const uppercaseCount = (formData.password.match(/[A-Z]/g) || []).length;
-      const specialCharCount = (formData.password.match(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~£]/g) || []).length;
-      const numberCount = (formData.password.match(/[0-9]/g) || []).length;
-
-      // Check requirements
-      if (uppercaseCount < 2) {
-        newErrors.password = "Password must contain at least 2 uppercase letters";
-        if (!errorMessage) errorMessage = "Password must contain at least 2 uppercase letters";
-        isValid = false;
-      } else if (specialCharCount < 2) {
-        newErrors.password = "Password must contain at least 2 special characters";
-        if (!errorMessage) errorMessage = "Password must contain at least 2 special characters";
-        isValid = false;
-      } else if (numberCount < 4) {
-        newErrors.password = "Password must contain at least 4 numbers";
-        if (!errorMessage) errorMessage = "Password must contain at least 4 numbers";
-        isValid = false;
-      }
     }
+    // else if (formData.password.length < 16) {
+    //   newErrors.password = "Password must be at least 16 characters";
+    //   if (!errorMessage) errorMessage = "Password must be at least 16 characters";
+    //   isValid = false;
+    // } else {
+    //   // Count uppercase letters, special characters, and numbers
+    //   const uppercaseCount = (formData.password.match(/[A-Z]/g) || []).length;
+    //   const specialCharCount = (formData.password.match(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~£]/g) || []).length;
+    //   const numberCount = (formData.password.match(/[0-9]/g) || []).length;
+
+    //   // Check requirements
+    //   if (uppercaseCount < 2) {
+    //     newErrors.password = "Password must contain at least 2 uppercase letters";
+    //     if (!errorMessage) errorMessage = "Password must contain at least 2 uppercase letters";
+    //     isValid = false;
+    //   } else if (specialCharCount < 2) {
+    //     newErrors.password = "Password must contain at least 2 special characters";
+    //     if (!errorMessage) errorMessage = "Password must contain at least 2 special characters";
+    //     isValid = false;
+    //   } else if (numberCount < 4) {
+    //     newErrors.password = "Password must contain at least 4 numbers";
+    //     if (!errorMessage) errorMessage = "Password must contain at least 4 numbers";
+    //     isValid = false;
+    //   }
+    // }
 
     setErrors(newErrors);
     return { isValid, errorMessage };
@@ -168,13 +170,55 @@ export const UserRegisterForm: React.FC = () => {
           position: "bottom", // o 'top'
         });
       }
-    } catch (error) {
-      Toast.show({
-        type: "error", // 'success', 'error', 'info'
-        text1: "There was a problem with your request",
-        text2: "Please try again later.",
-        position: "bottom", // o 'top'
-      });
+    } catch (error: any) {
+      console.error("Registration error:", error);
+
+      // Check if it's a ConnectError with already_exists code
+      if (error instanceof ConnectError) {
+        // Check error code or message for already_exists
+        const errorMessage = error.message || "";
+        // ConnectError may have code in different places - check both
+        const errorCode = (error as any).code || (error as any).metadata?.get?.("code")?.[0];
+
+        // Check if email already exists by code or message
+        const isAlreadyExists =
+          errorCode === "already_exists" ||
+          errorMessage.includes("[already_exists]") ||
+          errorMessage.includes("already_exists") ||
+          errorMessage.toLowerCase().includes("email already") ||
+          errorMessage.toLowerCase().includes("already registered");
+
+        if (isAlreadyExists) {
+          // Set error on email field
+          setErrors((prev) => ({
+            ...prev,
+            email: "This email is already registered. Please use a different email or sign in.",
+          }));
+
+          Toast.show({
+            type: "error",
+            text1: "Email already registered",
+            text2: "This email address is already in use. Please use a different email or sign in.",
+            position: "bottom",
+          });
+        } else {
+          // Other ConnectError
+          Toast.show({
+            type: "error",
+            text1: "Registration failed",
+            text2: errorMessage || "There was a problem creating your account. Please try again.",
+            position: "bottom",
+          });
+        }
+      } else {
+        // Generic error
+        Toast.show({
+          type: "error",
+          text1: "There was a problem with your request",
+          text2: "Please try again later.",
+          position: "bottom",
+        });
+      }
     }
     setLoading(false);
   };

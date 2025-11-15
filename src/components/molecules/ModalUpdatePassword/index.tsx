@@ -14,7 +14,6 @@ import Toast from "react-native-toast-message";
 interface ModalUpdatePasswordProps {
   visible: boolean;
   onClose: () => void;
-  onConfirm: () => void;
 }
 
 interface FormErrors {
@@ -22,10 +21,10 @@ interface FormErrors {
   newPassword: string;
 }
 
-export const ModalUpdatePassword: React.FC<ModalUpdatePasswordProps> = ({ visible, onClose, onConfirm }) => {
+export const ModalUpdatePassword: React.FC<ModalUpdatePasswordProps> = ({ visible, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [passwordData, setPasswordData] = useState({
-    oldPassword: "",
+    oldPassword: "%hc1£`=2@[g#{m(AqHZL3D9|@-*z(LQ=kwl8!'[ZxETBQX1d2j",
     newPassword: "",
   });
   const [errors, setErrors] = useState<FormErrors>({
@@ -79,21 +78,25 @@ export const ModalUpdatePassword: React.FC<ModalUpdatePasswordProps> = ({ visibl
       };
 
       const response = await authService.changePassword(changePasswordRequest);
-      console.log("Password changed successfully:", response);
-
-      Toast.show({
-        type: "success",
-        text1: "Password changed successfully!",
-        position: "bottom",
-      });
-      onConfirm();
-      setPasswordData({ oldPassword: "", newPassword: "" });
-      onClose();
+      if (response.$typeName === "ralvarezdev.v1.ChangePasswordResponse") {
+        Toast.show({
+          type: "success",
+          text1: "Password changed successfully!",
+          position: "bottom",
+        });
+        setPasswordData({ oldPassword: "", newPassword: "" });
+        onClose();
+      } else {
+        Toast.show({
+          type: "error", // 'success', 'error', 'info'
+          text1: "Could not change password. Please try again.",
+          position: "bottom", // o 'top'
+        });
+      }
     } catch (error: any) {
       Toast.show({
         type: "error", // 'success', 'error', 'info'
         text1: "Could not change password. Please try again.",
-        // text2: "You will be redirected to login...",
         position: "bottom", // o 'top'
       });
     } finally {
@@ -107,10 +110,6 @@ export const ModalUpdatePassword: React.FC<ModalUpdatePasswordProps> = ({ visibl
     onClose();
   };
 
-  if (loading) {
-    return <LoadingMessage message="Updating password..." />;
-  }
-
   return (
     <Modal
       visible={visible}
@@ -122,37 +121,41 @@ export const ModalUpdatePassword: React.FC<ModalUpdatePasswordProps> = ({ visibl
             <Button title="Cancel" variant="secondary" onPress={handleCancel} disabled={loading} />
           </View>
           <View style={{ flex: 1 }}>
-            <Button title="Update Password" variant="primary" onPress={handleConfirm} disabled={loading} />
+            <Button title="Confirm" variant="primary" onPress={handleConfirm} disabled={loading} loading={loading} />
           </View>
         </View>
       }>
-      <View style={styles.modalContent}>
-        <View style={styles.infoBox}>
-          <Text style={styles.infoText}>Your password must be at least 8 characters long</Text>
-        </View>
+      {loading ? (
+        <LoadingMessage message="Updating password..." />
+      ) : (
+        <View style={styles.modalContent}>
+          <View style={styles.infoBox}>
+            <Text style={styles.infoText}>Your password must be at least 8 characters long</Text>
+          </View>
 
-        <View style={styles.fieldContainer}>
-          <InputField
-            label="Current Password"
-            placeholder="Enter current password"
-            value={passwordData.oldPassword}
-            onChangeText={(value: string) => setPasswordData({ ...passwordData, oldPassword: value })}
-            error={errors.oldPassword}
-            secureTextEntry
-          />
-        </View>
+          <View style={styles.fieldContainer}>
+            <InputField
+              label="Current Password"
+              placeholder="Enter current password"
+              value={passwordData.oldPassword}
+              onChangeText={(value: string) => setPasswordData({ ...passwordData, oldPassword: value })}
+              error={errors.oldPassword}
+              secureTextEntry
+            />
+          </View>
 
-        <View style={styles.fieldContainer}>
-          <InputField
-            label="New Password"
-            placeholder="Enter new password"
-            value={passwordData.newPassword}
-            onChangeText={(value: string) => setPasswordData({ ...passwordData, newPassword: value })}
-            error={errors.newPassword}
-            secureTextEntry
-          />
+          <View style={styles.fieldContainer}>
+            <InputField
+              label="New Password"
+              placeholder="Enter new password"
+              value={passwordData.newPassword}
+              onChangeText={(value: string) => setPasswordData({ ...passwordData, newPassword: value })}
+              error={errors.newPassword}
+              secureTextEntry
+            />
+          </View>
         </View>
-      </View>
+      )}
     </Modal>
   );
 };

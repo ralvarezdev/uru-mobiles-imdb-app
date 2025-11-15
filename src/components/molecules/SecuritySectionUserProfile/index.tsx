@@ -5,16 +5,14 @@ import { ModalUpdatePassword } from "../ModalUpdatePassword";
 import { Text } from "@/components/atoms/Text";
 import { styles } from "./style";
 import { ModalUpdateEmail } from "../ModalUpdateEmail";
-import { ChangeEmailRequest, ChangePasswordRequest } from "@ralvarezdev/proto-auth-ts";
 import { GetMyProfileResponse } from "@ralvarezdev/proto-user-ts";
 
 interface SecuritySectionUserProfileProps {
   user: GetMyProfileResponse | undefined;
-  onEmailChange?: (newEmail: string) => void;
-  onPasswordChange?: () => void;
+  onEmailChange: (newEmail: string) => void;
 }
 
-export const SecuritySectionUserProfile: React.FC<SecuritySectionUserProfileProps> = ({ user }) => {
+export const SecuritySectionUserProfile: React.FC<SecuritySectionUserProfileProps> = ({ user, onEmailChange }) => {
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
 
@@ -49,9 +47,9 @@ export const SecuritySectionUserProfile: React.FC<SecuritySectionUserProfileProp
       </View>
 
       {/* Modals */}
-      <ModalUpdateEmail visible={showEmailModal} onClose={() => setShowEmailModal(false)} onConfirm={() => {}} currentEmail={user?.email} />
+      <ModalUpdateEmail visible={showEmailModal} onClose={() => setShowEmailModal(false)} onConfirm={onEmailChange} currentEmail={user?.email} />
 
-      <ModalUpdatePassword visible={showPasswordModal} onClose={() => setShowPasswordModal(false)} onConfirm={() => {}} />
+      <ModalUpdatePassword visible={showPasswordModal} onClose={() => setShowPasswordModal(false)} />
     </View>
   );
 };

@@ -19,5 +19,15 @@ export const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 13,
   },
+  emptyContainer: {
+    paddingVertical: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyText: {
+    fontSize: 14,
+    color: "#64748b",
+    textAlign: "center",
+  },
 });
 

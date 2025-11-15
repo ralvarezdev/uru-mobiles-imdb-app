@@ -28,7 +28,10 @@ export const UserProfile: React.FC = () => {
   //   hasTotpEnabled: true,
   //   $typeName: "ralvarezdev.v1.GetMyProfileResponse",
   // });
-  const [userRoles, setUserRoles] = useState<string[]>([]);
+  // const [userRoles, setUserRoles] = useState<string[]>([]);
+  const handleChangeUser = (field: keyof GetMyProfileResponse, value: string) => {
+    setUser((prev) => ({ ...prev, [field]: value } as GetMyProfileResponse));
+  };
 
   useEffect(() => {
     loadUserProfile();
@@ -67,7 +70,7 @@ export const UserProfile: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <UserProfileCard user={user} userRoles={userRoles} />
+      <UserProfileCard user={user} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
@@ -76,7 +79,7 @@ export const UserProfile: React.FC = () => {
         nestedScrollEnabled={true}
         keyboardShouldPersistTaps="handled">
         <UserProfileInformation user={user} />
-        <SecuritySectionUserProfile user={user} />
+        <SecuritySectionUserProfile user={user} onEmailChange={(text) => handleChangeUser("email", text)} />
         {/* <RequestToBeCriticUserProfile user={user} userRoles={userRoles} /> */}
         <ActionButtonsUserProfile user={user} />
         <LogoutButtonUserProfile />

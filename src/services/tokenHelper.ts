@@ -16,6 +16,7 @@ export function createAuthenticatedFetch(
 
   return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     // Get current access token - use provided function or import dynamically
+    // Capture token at the start of the request to avoid race conditions
     let accessToken: string | null = null;
     if (getTokenFn) {
       accessToken = getTokenFn();
@@ -26,6 +27,7 @@ export function createAuthenticatedFetch(
     }
 
     // Add Bearer token to headers if available
+    // Only add if token exists to avoid sending "Bearer null"
     const headers = new Headers(init?.headers);
     if (accessToken) {
       headers.set('Authorization', `Bearer ${accessToken}`);

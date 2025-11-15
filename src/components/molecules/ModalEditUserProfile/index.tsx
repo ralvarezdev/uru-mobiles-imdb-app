@@ -7,6 +7,7 @@ import { Modal } from "@/components/atoms/Modal";
 import { GetMyProfileResponse, UpdateProfileRequest } from "@ralvarezdev/proto-user-ts";
 import userService from "@/services/userService";
 import Toast from "react-native-toast-message";
+import { LoadingMessage } from "../LoadingMessage";
 
 interface ModalEditUserProfileProps {
   user: GetMyProfileResponse | undefined;
@@ -75,15 +76,15 @@ export const ModalEditUserProfile: React.FC<ModalEditUserProfileProps> = ({ user
     try {
       const response = await userService.update(editFormData);
 
-      console.log("Perfil actualizado:", editFormData);
-      Toast.show({
-        type: "success",
-        text1: "Profile updated successfully!",
-        position: "bottom",
-      });
-      onClose();
+      if (response.$typeName === "ralvarezdev.v1.UpdateProfileResponse") {
+        Toast.show({
+          type: "success",
+          text1: "Profile updated successfully!",
+          position: "bottom",
+        });
+        onClose();
+      }
     } catch (error) {
-      console.error("Error al actualizar perfil:", error);
       Toast.show({
         type: "error",
         text1: "Could not update profile. Please try again.",
@@ -93,6 +94,7 @@ export const ModalEditUserProfile: React.FC<ModalEditUserProfileProps> = ({ user
       setLoading(false);
     }
   };
+
   return (
     <Modal
       visible={visible}
@@ -101,14 +103,18 @@ export const ModalEditUserProfile: React.FC<ModalEditUserProfileProps> = ({ user
       footer={
         <View style={{ flexDirection: "row", gap: 12, width: "100%" }}>
           <View style={{ flex: 1 }}>
-            <Button title="Cancel" variant="secondary" onPress={onClose} />
+            <Button title="Cancel" variant="secondary" onPress={onClose} disabled={loading} />
           </View>
           <View style={{ flex: 1 }}>
-            <Button title="Save Changes" variant="primary" onPress={handleUpdateProfile} />
+            <Button title="Save Changes" variant="primary" onPress={handleUpdateProfile} disabled={loading} loading={loading} />
           </View>
         </View>
       }>
-      <EditProfileForm initialData={editFormData} onDataChange={setEditFormData} errors={errors} />
+      {loading ? (
+        <LoadingMessage message="Updating profile..." />
+      ) : (
+        <EditProfileForm initialData={editFormData} onDataChange={setEditFormData} errors={errors} />
+      )}
     </Modal>
   );
 };

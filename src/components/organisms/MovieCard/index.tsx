@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Image } from "react-native";
 import { styles } from "./style";
 import { SimpleMovie } from "@ralvarezdev/proto-movies-ts";
 import { router, useRouter } from "expo-router";
@@ -25,15 +25,14 @@ export const MovieCard = ({ movie }: MovieCardProps) => {
   const onPress = () => {
     router.push({ pathname: `/(tabs)/home/movie/[movieId]`, params: { movieId: movie.id } });
   };
-
+  console.log(movie.posterUrl);
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
       <View style={styles.posterContainer}>
+        {movie.posterUrl ? <Image source={{ uri: movie.posterUrl }} style={styles.posterImage} resizeMode="cover" /> : null}
         <View style={styles.yearBadge}>
           <Text style={styles.yearText}>{yearText}</Text>
         </View>
-        {/* Si tienes imagen, aquí va el <Image>. Si no, un placeholder */}
-        {/* <Text style={styles.posterText}>{movie.posterUrl}</Text> */}
       </View>
       <View style={styles.infoContainer}>
         <Text style={styles.title}>{movie.title}</Text>

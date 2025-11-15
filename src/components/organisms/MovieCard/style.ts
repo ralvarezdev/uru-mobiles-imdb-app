@@ -22,6 +22,14 @@ export const styles = StyleSheet.create({
     position: "relative",
     borderTopLeftRadius: 18,
     borderTopRightRadius: 18,
+    overflow: "hidden",
+  },
+  posterImage: {
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+    top: 0,
+    left: 0,
   },
   yearBadge: {
     position: "absolute",

@@ -19,7 +19,8 @@ export const LoginForm: React.FC = () => {
   const [loginInput, setLoginInput] = useState<LogInRequest>({
     twoFactorCode: { value: undefined, case: undefined },
     username: "yeglistar",
-    password: "%hc1£`=2@[g#{m(AqHZL3D9|@-*z(LQ=kwl8!'[ZxETBQX1d2j",
+    password: "P4$sw0rD#12345678",
+    // password: "%hc1£`=2@[g#{m(AqHZL3D9|@-*z(LQ=kwl8!'[ZxETBQX1d2j",
   } as LogInRequest);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({
@@ -67,30 +68,79 @@ export const LoginForm: React.FC = () => {
     }
 
     setLoading(true);
+    // Clear any previous errors before making the request
+    authService.clearLastError();
+
     try {
       const result = await authService.logIn(loginInput);
-      if (result?.$typeName === "ralvarezdev.v1.LogInResponse") {
+      console.log("Login result:", result);
+
+      if (result && result.$typeName === "ralvarezdev.v1.LogInResponse") {
         Toast.show({
           type: "success", // 'success', 'error', 'info'
           text1: "Login successful",
           text2: "You will be redirected to home...",
           position: "bottom", // o 'top'
+          visibilityTime: 5000, // 5 seconds
         });
         router.replace("/(tabs)/home");
       } else {
-        Toast.show({
-          type: "error", // 'success', 'error', 'info'
-          text1: "User not found",
-          text2: "Please verify your username and password.",
-          position: "bottom", // o 'top'
-        });
+        // Response is undefined, check for parsed error
+        const parsedError = authService.getLastError();
+
+        if (parsedError) {
+          const { generalMessage, errorCode, fieldErrors } = parsedError;
+
+          // Check for invalid_argument error (invalid username or password)
+          if (
+            errorCode === "invalid_argument" ||
+            generalMessage.toLowerCase().includes("invalid username") ||
+            generalMessage.toLowerCase().includes("invalid password") ||
+            generalMessage.toLowerCase().includes("invalid username or password")
+          ) {
+            // Set errors on both fields
+            setErrors({
+              username: "Invalid username or password",
+              password: "Invalid username or password",
+            });
+
+            Toast.show({
+              type: "error",
+              text1: "Invalid credentials",
+              text2: "Please verify your username and password.",
+              position: "bottom",
+              visibilityTime: 5000, // 5 seconds
+            });
+          } else {
+            // Other errors
+            Toast.show({
+              type: "error",
+              text1: "Login failed",
+              text2: generalMessage || "There was a problem signing in. Please try again.",
+              position: "bottom",
+              visibilityTime: 5000, // 5 seconds
+            });
+          }
+        } else {
+          // No parsed error available, show generic message
+          Toast.show({
+            type: "error",
+            text1: "Login failed",
+            text2: "Please verify your username and password.",
+            position: "bottom",
+            visibilityTime: 5000, // 5 seconds
+          });
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
+      // This catch should rarely be hit now, but keep it as a safety net
+      console.error("Unexpected login error:", error);
       Toast.show({
-        type: "error", // 'success', 'error', 'info'
+        type: "error",
         text1: "There was a problem with your request",
         text2: "Please try again later.",
-        position: "bottom", // o 'top'
+        position: "bottom",
+        visibilityTime: 5000, // 5 seconds
       });
     }
     setLoading(false);

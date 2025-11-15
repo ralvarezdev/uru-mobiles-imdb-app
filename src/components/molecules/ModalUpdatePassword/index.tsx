@@ -69,7 +69,9 @@ export const ModalUpdatePassword: React.FC<ModalUpdatePasswordProps> = ({ visibl
     }
 
     setLoading(true);
-
+    // Clear any previous errors before making the request
+    authService.clearLastError();
+    
     try {
       const changePasswordRequest: ChangePasswordRequest = {
         oldPassword: passwordData.oldPassword,
@@ -78,26 +80,53 @@ export const ModalUpdatePassword: React.FC<ModalUpdatePasswordProps> = ({ visibl
       };
 
       const response = await authService.changePassword(changePasswordRequest);
-      if (response.$typeName === "ralvarezdev.v1.ChangePasswordResponse") {
-        Toast.show({
-          type: "success",
-          text1: "Password changed successfully!",
-          position: "bottom",
-        });
+      console.log("change password response:", response);
+      
+      if (response && response.$typeName === "ralvarezdev.v1.ChangePasswordResponse") {
+        console.log("Password change successful");
+        // Close modal first
         setPasswordData({ oldPassword: "", newPassword: "" });
         onClose();
+        
+        // Show toast after modal closes (using global Toast instance)
+        setTimeout(() => {
+          Toast.show({
+            type: "success",
+            text1: "Password changed successfully!",
+            position: "bottom",
+            visibilityTime: 5000, // 5 seconds
+          });
+        }, 100); // Small delay to ensure modal is closed
       } else {
-        Toast.show({
-          type: "error", // 'success', 'error', 'info'
-          text1: "Could not change password. Please try again.",
-          position: "bottom", // o 'top'
-        });
+        // Response is undefined, check for parsed error
+        const parsedError = authService.getLastError();
+        console.log("Password change failed, parsed error:", parsedError);
+        
+        if (parsedError) {
+          Toast.show({
+            type: "error",
+            text1: "Could not change password",
+            text2: parsedError.generalMessage || "Please try again.",
+            position: "bottom",
+            visibilityTime: 5000, // 5 seconds
+          });
+        } else {
+          Toast.show({
+            type: "error", // 'success', 'error', 'info'
+            text1: "Could not change password. Please try again.",
+            position: "bottom", // o 'top'
+            visibilityTime: 5000, // 5 seconds
+          });
+        }
       }
     } catch (error: any) {
+      // This catch should rarely be hit now, but keep it as a safety net
+      console.error("Unexpected change password error:", error);
       Toast.show({
         type: "error", // 'success', 'error', 'info'
         text1: "Could not change password. Please try again.",
         position: "bottom", // o 'top'
+        visibilityTime: 5000, // 5 seconds
       });
     } finally {
       setLoading(false);

@@ -96,6 +96,7 @@ const MovieDetailScreen = () => {
         text1: "Error",
         text2: "Movie ID was not provided",
         position: "bottom",
+        visibilityTime: 5000, // 5 seconds
       });
       router.back();
     }
@@ -153,6 +154,7 @@ const MovieDetailScreen = () => {
         text1: "Error",
         text2: "Movie ID is required",
         position: "bottom",
+        visibilityTime: 5000, // 5 seconds
       });
       return;
     }
@@ -173,6 +175,7 @@ const MovieDetailScreen = () => {
         text1: "Review added successfully",
         text2: "Your review has been posted",
         position: "bottom",
+        visibilityTime: 5000, // 5 seconds
       });
 
       setIsModalVisible(false);
@@ -186,6 +189,7 @@ const MovieDetailScreen = () => {
         text1: "Error adding review",
         text2: error?.message || "Could not add your review. Please try again.",
         position: "bottom",
+        visibilityTime: 5000, // 5 seconds
       });
     } finally {
       setSubmittingComment(false);

@@ -1,6 +1,10 @@
 import { UserService as UserServiceProto, CreateAccountRequest, CreateAccountResponse, GetMyProfileRequest, GetMyProfileResponse, UpdateProfileRequest, UpdateProfileResponse, DeleteAccountResponse, DeleteAccountRequest } from "@ralvarezdev/proto-user-ts";
-import {BadRequestSchema, ErrorInfoSchema} from "@/assets/errors/error_details_pb";
-import { ViolationsSchema } from "@ralvarezdev/proto-user-ts/buf/validate/validate_pb";
+import * as Connect from "@connectrpc/connect";
+import { createConnectTransport } from "@connectrpc/connect-web";
+import Constants from "expo-constants";
+import { ConnectError } from "@connectrpc/connect";
+import { parseConnectError, ParsedError } from "@/services/errorHelper";
+
 const BASE_URL = Constants.expoConfig?.extra?.API_BASE_URL_USER ?? "http://localhost:8080";
 
 // Import token helper to add Bearer token and auto-refresh
@@ -31,11 +35,6 @@ export const transport = createConnectTransport({
   baseUrl: BASE_URL,
   fetch: getAuthenticatedFetch(),
 });
-
-import * as Connect from "@connectrpc/connect";
-import { createConnectTransport } from "@connectrpc/connect-web";
-import Constants from "expo-constants";
-import { ConnectError } from "@connectrpc/connect";
 
 const _createClientFn = (Connect as any).createClient ?? (Connect as any).createPromiseClient ?? null;
 
@@ -73,98 +72,90 @@ export class UserService {
   public async register(orops: CreateAccountRequest): Promise<CreateAccountResponse | undefined> {
     try {
       const res = await this.client.createAccount(orops);
-      console.log("register", res);
-      // if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
+      console.log("register response:", res);
+      console.log("register response type:", typeof res);
+      console.log("register response $typeName:", res?.$typeName);
+      
+      // Clear any previous errors on success
+      (this as any)._lastError = undefined;
+      
       return res as CreateAccountResponse;
     } catch (err) {
-      console.log("err", err, err instanceof ConnectError);
+      console.error("register error:", err);
       if (err instanceof ConnectError) {
-        const violations = err.findDetails(ViolationsSchema);
-        console.log("violations", violations);
-        if (violations.length > 0) {
-          console.log("Validation violations found:", violations);
-          violations.forEach(violationGroup => {
-            if (violationGroup.violations) {
-              violationGroup.violations.forEach(violation => {
-                const fieldPath = violation.field?.elements
-                  ?.map(e => {
-                    if (e.fieldName) return e.fieldName;
-                    if (e.fieldNumber) return `field_${e.fieldNumber}`;
-                    return 'unknown';
-                  })
-                  .join('.') || 'unknown';
-                
-                console.log(`Field Path: ${fieldPath}`);
-                console.log(`Rule ID: ${violation.ruleId || 'N/A'}`);
-                console.log(`Message: ${violation.message || 'N/A'}`);
-                if (violation.forKey) {
-                  console.log(`For Key: ${violation.forKey}`);
-                }
-              });
-            }
-          });
-        }
-
-        const badRequest = err.findDetails(BadRequestSchema);
-        console.log("badRequest", badRequest);
-        if (badRequest.length > 0) {
-          console.log("Field violations:", badRequest[0].fieldViolations);
-          badRequest[0].fieldViolations.forEach(violation => {
-            console.log(`Field: ${violation.field}`);
-            console.log(`Description: ${violation.description}`);
-            if (violation.reason) {
-              console.log(`Reason: ${violation.reason}`);
-            }
-          });
-        }
-
-        const errorInfo = err.findDetails(ErrorInfoSchema);
-        console.log("errorInfo", errorInfo);
-        if (errorInfo.length > 0) {
-          console.log("Reason:", errorInfo[0].reason);
-          console.log("Domain:", errorInfo[0].domain);
-          console.log("Metadata:", errorInfo[0].metadata);
-        }
+        const parsedError = parseConnectError(err);
+        console.log("Parsed registration errors:", parsedError);
+        // Store parsed error in a way that components can access it
+        // without throwing an unhandled error
+        (err as any).parsedError = parsedError;
+        // Store error globally for this request (alternative approach)
+        // This allows components to access the error even if we return undefined
+        (this as any)._lastError = parsedError;
       }
-      throw err;
+      // Return undefined instead of throwing to avoid unhandled errors
+      // Components should check for undefined response and handle errors accordingly
+      return undefined;
     }
   }
 
-  public async me(orops: GetMyProfileRequest): Promise<GetMyProfileResponse> {
+  public async me(orops: GetMyProfileRequest): Promise<GetMyProfileResponse | undefined> {
     try {
       const user = await this.client.getMyProfile(orops);
       console.log("user profile", user);
-      // if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
       return user as GetMyProfileResponse;
-    } catch (err: any) {
-      console.error("err", err);
-      throw new Error(err?.message ?? "Error al obtener el perfil del usuario");
+    } catch (err) {
+      if (err instanceof ConnectError) {
+        const parsedError = parseConnectError(err);
+        console.log("Parsed profile errors:", parsedError);
+        (this as any)._lastError = parsedError;
+      }
+      return undefined;
     }
   }
 
-  public async update(orops: UpdateProfileRequest): Promise<UpdateProfileResponse> {
+  public async update(orops: UpdateProfileRequest): Promise<UpdateProfileResponse | undefined> {
     try {
       const result = await this.client.updateProfile(orops);
       console.log("update user profile", result);
-      // if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
       return result as UpdateProfileResponse;
-    } catch (err: any) {
-      console.error("err", err);
-      throw new Error(err?.message ?? "Error al actualizar el usuario");
+    } catch (err) {
+      if (err instanceof ConnectError) {
+        const parsedError = parseConnectError(err);
+        console.log("Parsed update errors:", parsedError);
+        (this as any)._lastError = parsedError;
+      }
+      return undefined;
     }
   }
 
-  public async delete(orops: DeleteAccountRequest): Promise<DeleteAccountResponse> {
+  public async delete(orops: DeleteAccountRequest): Promise<DeleteAccountResponse | undefined> {
     try {
       const result = await this.client.deleteAccount(orops);
-      console.log("update user profile", result);
-      // if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
+      console.log("delete user account", result);
       return result as DeleteAccountResponse;
-    } catch (err: any) {
-      console.error("err", err);
-      throw new Error(err?.message ?? "Error al eliminar el usuario");
+    } catch (err) {
+      if (err instanceof ConnectError) {
+        const parsedError = parseConnectError(err);
+        console.log("Parsed delete errors:", parsedError);
+        (this as any)._lastError = parsedError;
+      }
+      return undefined;
     }
-    
+  }
+
+  /**
+   * Gets the last parsed error from the most recent service call
+   * Use this in components to access error details when a method returns undefined
+   */
+  public getLastError(): ParsedError | undefined {
+    return (this as any)._lastError;
+  }
+
+  /**
+   * Clears the last error
+   */
+  public clearLastError(): void {
+    (this as any)._lastError = undefined;
   }
 
   //   public async register(input: RegisterRequest): Promise<RegisterResponse> {

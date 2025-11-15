@@ -2,6 +2,8 @@ import { AuthService as AuthServiceProto, ChangeEmailRequest, ChangeEmailRespons
 import * as Connect from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
 import Constants from "expo-constants";
+import { ConnectError } from "@connectrpc/connect";
+import { parseConnectError, ParsedError } from "@/services/errorHelper";
 const BASE_URL = Constants.expoConfig?.extra?.API_BASE_URL_AUTH ?? "http://localhost:8080";
 
 // Custom fetch to capture response headers
@@ -212,7 +214,7 @@ export class AuthService {
 //     return { headers };
 //   }
 
-  public async logIn(input: LogInRequest): Promise<LogInResponse> {
+  public async logIn(input: LogInRequest): Promise<LogInResponse | undefined> {
     try {
       // Reset captured headers before making the request
       capturedHeaders = null;
@@ -269,9 +271,15 @@ export class AuthService {
       }
 
       return res as LogInResponse;
-    } catch (err: any) {
-      console.error('err', err);
-      throw new Error(err?.message ?? "Error al iniciar sesión");
+    } catch (err) {
+      if (err instanceof ConnectError) {
+        const parsedError = parseConnectError(err);
+        console.log("Parsed login errors:", parsedError);
+        // Store parsed error for components to access
+        (this as any)._lastError = parsedError;
+      }
+      // Return undefined instead of throwing to avoid unhandled errors
+      return undefined;
     }
   }
 
@@ -287,25 +295,51 @@ export class AuthService {
     }
   }
 
-  public async changeEmail(newEmail: ChangeEmailRequest): Promise<ChangeEmailResponse> {
+  public async changeEmail(newEmail: ChangeEmailRequest): Promise<ChangeEmailResponse | undefined> {
     try {
       const response = await this.client.changeEmail(newEmail);
       console.log("change email response", response);
+      console.log("change email response type:", typeof response);
+      console.log("change email response $typeName:", response?.$typeName);
+      
+      // Clear any previous errors on success
+      (this as any)._lastError = undefined;
+      
       return response as ChangeEmailResponse;
-    } catch (err: any) {
-      console.error("err", err);
-      throw new Error(err?.message ?? "Error al cambiar el email");
+    } catch (err) {
+      console.error("change email error:", err);
+      if (err instanceof ConnectError) {
+        const parsedError = parseConnectError(err);
+        console.log("Parsed change email errors:", parsedError);
+        // Store parsed error for components to access
+        (this as any)._lastError = parsedError;
+      }
+      // Return undefined instead of throwing to avoid unhandled errors
+      return undefined;
     }
   }
 
-  public async changePassword(newPassword: ChangePasswordRequest): Promise<ChangePasswordResponse> {
+  public async changePassword(newPassword: ChangePasswordRequest): Promise<ChangePasswordResponse | undefined> {
     try {
       const response = await this.client.changePassword(newPassword);
       console.log("change password response", response);
+      console.log("change password response type:", typeof response);
+      console.log("change password response $typeName:", response?.$typeName);
+      
+      // Clear any previous errors on success
+      (this as any)._lastError = undefined;
+      
       return response as ChangePasswordResponse;
-    } catch (err: any) {
-      console.error("err", err);
-      throw new Error(err?.message ?? "Error al cambiar la contraseña");
+    } catch (err) {
+      console.error("change password error:", err);
+      if (err instanceof ConnectError) {
+        const parsedError = parseConnectError(err);
+        console.log("Parsed change password errors:", parsedError);
+        // Store parsed error for components to access
+        (this as any)._lastError = parsedError;
+      }
+      // Return undefined instead of throwing to avoid unhandled errors
+      return undefined;
     }
   }
 
@@ -364,6 +398,21 @@ export class AuthService {
 //       throw new Error(err?.message ?? "Error al registrar");
 //     }
 //   }
+
+  /**
+   * Gets the last parsed error from the most recent service call
+   * Use this in components to access error details when a method returns undefined
+   */
+  public getLastError(): ParsedError | undefined {
+    return (this as any)._lastError;
+  }
+
+  /**
+   * Clears the last error
+   */
+  public clearLastError(): void {
+    (this as any)._lastError = undefined;
+  }
 
   public static closeTransport(): void {
     try {

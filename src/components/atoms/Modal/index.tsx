@@ -2,6 +2,7 @@
 import React from "react";
 import { Text } from "@/components/atoms/Text";
 import { Modal as RNModal, View, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Pressable } from "react-native";
+import Toast from "react-native-toast-message";
 import { styles } from "./style";
 
 interface ModalProps {
@@ -56,6 +57,8 @@ export const Modal: React.FC<ModalProps> = ({ visible, onClose, title, children,
             </Pressable>
           </KeyboardAvoidingView>
         </Pressable>
+        {/* Toast instance inside modal to ensure it's visible */}
+        <Toast />
       </View>
     </RNModal>
   );

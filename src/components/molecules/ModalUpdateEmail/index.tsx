@@ -66,35 +66,68 @@ export const ModalUpdateEmail: React.FC<ModalUpdateEmailProps> = ({ visible, onC
     }
 
     setLoading(true);
+    // Clear any previous errors before making the request
+    authService.clearLastError();
+
     try {
       const req: ChangeEmailRequest = {
         email: newEmail,
         $typeName: "ralvarezdev.v1.ChangeEmailRequest",
       };
       const response = await authService.changeEmail(req);
-      if (response.$typeName === "ralvarezdev.v1.ChangeEmailResponse") {
-        Toast.show({
-          type: "success", // 'success', 'error', 'info'
-          text1: "Email changed successfully!",
-          position: "bottom", // o 'top'
-        });
+      console.log("change email response:", response);
+      console.log("change email response type:", typeof response);
+      console.log("change email response $typeName:", response?.$typeName);
+      console.log("checking condition:", response && response.$typeName === "ralvarezdev.v1.ChangeEmailResponse");
+
+      if (response && response.$typeName === "ralvarezdev.v1.ChangeEmailResponse") {
+        console.log("Email change successful");
+        // Close modal first
         onConfirm(newEmail);
         setNewEmail("");
         setErrors({ email: "" });
         onClose();
+
+        // Show toast after modal closes (using global Toast instance)
+        setTimeout(() => {
+          Toast.show({
+            type: "success", // 'success', 'error', 'info'
+            text1: "Email changed successfully!",
+            position: "bottom", // o 'top'
+            visibilityTime: 5000, // 5 seconds
+          });
+        }, 1000); // Small delay to ensure modal is closed
       } else {
-        Toast.show({
-          type: "error", // 'success', 'error', 'info'
-          text1: "Could not change email. Please try again.",
-          position: "bottom", // o 'top'
-        });
+        // Response is undefined, check for parsed error
+        const parsedError = authService.getLastError();
+        console.log("Email change failed, parsed error:", parsedError);
+
+        if (parsedError) {
+          Toast.show({
+            type: "error",
+            text1: "Could not change email",
+            text2: parsedError.generalMessage || "Please try again.",
+            position: "bottom",
+            visibilityTime: 5000, // 5 seconds
+          });
+        } else {
+          Toast.show({
+            type: "error", // 'success', 'error', 'info'
+            text1: "Could not change email. Please try again.",
+            position: "bottom", // o 'top'
+            visibilityTime: 5000, // 5 seconds
+          });
+        }
       }
     } catch (error: any) {
+      // This catch should rarely be hit now, but keep it as a safety net
+      console.error("Unexpected change email error:", error);
       Toast.show({
         type: "error", // 'success', 'error', 'info'
         text1: "Could not change email. Please try again.",
         // text2: "You will be redirected to login...",
         position: "bottom", // o 'top'
+        visibilityTime: 5000, // 5 seconds
       });
     } finally {
       setLoading(false);

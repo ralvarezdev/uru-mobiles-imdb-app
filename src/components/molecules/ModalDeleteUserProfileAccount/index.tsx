@@ -74,6 +74,7 @@ export const ModalDeleteUserProfileAccount: React.FC<ModalDeleteUserProfileAccou
         text1: "Account deleted successfully",
         text2: "Your account has been permanently deleted. Thank you for using our service.",
         position: "bottom",
+        visibilityTime: 5000, // 5 seconds
       });
       onClose();
       setDeleteFormData({ password: "", $typeName: "ralvarezdev.v1.DeleteAccountRequest" });
@@ -85,6 +86,7 @@ export const ModalDeleteUserProfileAccount: React.FC<ModalDeleteUserProfileAccou
         text1: "Could not delete account",
         text2: error?.message || "Incorrect password or server error. Please try again.",
         position: "bottom",
+        visibilityTime: 5000, // 5 seconds
       });
       setConfirmDelete(false);
     } finally {

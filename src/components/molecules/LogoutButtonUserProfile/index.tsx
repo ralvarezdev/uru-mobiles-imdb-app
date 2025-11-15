@@ -21,6 +21,7 @@ export const LogoutButtonUserProfile: React.FC = () => {
           text1: "Logout successful",
           text2: "You have been logged out successfully.",
           position: "bottom",
+          visibilityTime: 5000, // 5 seconds
         });
         router.push("/");
       } else {
@@ -28,6 +29,7 @@ export const LogoutButtonUserProfile: React.FC = () => {
           type: "error",
           text1: "Could not logout. Please try again.",
           position: "bottom",
+          visibilityTime: 5000, // 5 seconds
         });
       }
     } catch (error: any) {
@@ -37,6 +39,7 @@ export const LogoutButtonUserProfile: React.FC = () => {
         text1: "Could not logout. Please try again.",
         text2: error?.message || "An error occurred while logging out.",
         position: "bottom",
+        visibilityTime: 5000, // 5 seconds
       });
     }
   };

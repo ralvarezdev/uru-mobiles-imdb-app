@@ -73,22 +73,55 @@ export const ModalEditUserProfile: React.FC<ModalEditUserProfileProps> = ({ user
     }
 
     setLoading(true);
+    // Clear any previous errors before making the request
+    userService.clearLastError();
+    
     try {
       const response = await userService.update(editFormData);
 
-      if (response.$typeName === "ralvarezdev.v1.UpdateProfileResponse") {
-        Toast.show({
-          type: "success",
-          text1: "Profile updated successfully!",
-          position: "bottom",
-        });
+      if (response && response.$typeName === "ralvarezdev.v1.UpdateProfileResponse") {
+        console.log("Profile update successful");
+        // Close modal first
         onClose();
+        
+        // Show toast after modal closes (using global Toast instance)
+        setTimeout(() => {
+          Toast.show({
+            type: "success",
+            text1: "Profile updated successfully!",
+            position: "bottom",
+            visibilityTime: 5000, // 5 seconds
+          });
+        }, 100); // Small delay to ensure modal is closed
+      } else {
+        // Response is undefined, check for parsed error
+        const parsedError = userService.getLastError();
+        
+        if (parsedError) {
+          Toast.show({
+            type: "error",
+            text1: "Could not update profile",
+            text2: parsedError.generalMessage || "Please try again.",
+            position: "bottom",
+            visibilityTime: 5000, // 5 seconds
+          });
+        } else {
+          Toast.show({
+            type: "error",
+            text1: "Could not update profile. Please try again.",
+            position: "bottom",
+            visibilityTime: 5000, // 5 seconds
+          });
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
+      // This catch should rarely be hit now, but keep it as a safety net
+      console.error("Unexpected update error:", error);
       Toast.show({
         type: "error",
         text1: "Could not update profile. Please try again.",
         position: "bottom",
+        visibilityTime: 5000, // 5 seconds
       });
     } finally {
       setLoading(false);

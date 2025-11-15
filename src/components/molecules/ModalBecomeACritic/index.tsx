@@ -22,13 +22,19 @@ export const ModalBecomeACritic: React.FC<ModalBecomeACriticProps> = ({ visible,
       await authService.requestCriticRole();
 
       console.log("Solicitud de crítico enviada");
-      Toast.show({
-        type: "success",
-        text1: "Request sent successfully!",
-        text2: "An administrator will review your profile and you will receive a notification when it's processed.",
-        position: "bottom",
-      });
+      // Close modal first
       onClose();
+      
+      // Show toast after modal closes (using global Toast instance)
+      setTimeout(() => {
+        Toast.show({
+          type: "success",
+          text1: "Request sent successfully!",
+          text2: "An administrator will review your profile and you will receive a notification when it's processed.",
+          position: "bottom",
+          visibilityTime: 5000, // 5 seconds
+        });
+      }, 100); // Small delay to ensure modal is closed
     } catch (error: any) {
       console.error("Error al solicitar ser crítico:", error);
       Toast.show({
@@ -36,6 +42,7 @@ export const ModalBecomeACritic: React.FC<ModalBecomeACriticProps> = ({ visible,
         text1: "Could not send request",
         text2: error?.message ?? "Please try again later.",
         position: "bottom",
+        visibilityTime: 5000, // 5 seconds
       });
     } finally {
       setLoading(false);

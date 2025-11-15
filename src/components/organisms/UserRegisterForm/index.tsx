@@ -150,75 +150,102 @@ export const UserRegisterForm: React.FC = () => {
     }
 
     setLoading(true);
+    // Clear any previous errors before making the request
+    userService.clearLastError();
+
     try {
       // const registerInput: CreateAccountRequest = { ...user, password, avatar: "" };
       const userRegisteredResponse = await userService.register(formData);
       console.log("userRegisteredResponse", userRegisteredResponse);
-      if (userRegisteredResponse?.$typeName === "ralvarezdev.v1.CreateAccountResponse") {
+      console.log("userRegisteredResponse type:", typeof userRegisteredResponse);
+      console.log("userRegisteredResponse $typeName:", userRegisteredResponse?.$typeName);
+
+      if (userRegisteredResponse && userRegisteredResponse.$typeName === "ralvarezdev.v1.CreateAccountResponse") {
+        console.log("Registration successful, showing success toast");
         Toast.show({
           type: "success", // 'success', 'error', 'info'
           text1: "Account created successfully",
           text2: "You will be redirected to login...",
           position: "bottom", // o 'top'
+          visibilityTime: 5000, // 5 seconds
         });
-        router.replace("/");
+        // Add a small delay to ensure toast is shown before navigation
+        setTimeout(() => {
+          router.replace("/");
+        }, 500);
       } else {
-        Toast.show({
-          type: "error", // 'success', 'error', 'info'
-          text1: "Invalid data",
-          text2: "Please verify that you have filled in all the required fields.",
-          position: "bottom", // o 'top'
-        });
-      }
-    } catch (error: any) {
-      console.error("Registration error:", error);
+        console.log("Registration failed or response is undefined");
+        // Response is undefined, check for parsed error
+        const parsedError = userService.getLastError();
 
-      // Check if it's a ConnectError with already_exists code
-      if (error instanceof ConnectError) {
-        // Check error code or message for already_exists
-        const errorMessage = error.message || "";
-        // ConnectError may have code in different places - check both
-        const errorCode = (error as any).code || (error as any).metadata?.get?.("code")?.[0];
+        if (parsedError) {
+          // Use parsed error information
+          const { messages, fieldErrors, generalMessage, errorCode } = parsedError;
 
-        // Check if email already exists by code or message
-        const isAlreadyExists =
-          errorCode === "already_exists" ||
-          errorMessage.includes("[already_exists]") ||
-          errorMessage.includes("already_exists") ||
-          errorMessage.toLowerCase().includes("email already") ||
-          errorMessage.toLowerCase().includes("already registered");
+          // Update form errors with field-specific errors
+          if (Object.keys(fieldErrors).length > 0) {
+            setErrors((prev) => {
+              const newErrors = { ...prev };
+              // Map field errors to form errors
+              Object.entries(fieldErrors).forEach(([field, errorList]) => {
+                // Map common field names
+                const formField = field.toLowerCase().replace(/\./g, "");
+                if (formField in newErrors && Array.isArray(errorList) && errorList.length > 0) {
+                  newErrors[formField as keyof FormErrors] = errorList[0] || "";
+                }
+              });
+              return newErrors;
+            });
+          }
 
-        if (isAlreadyExists) {
-          // Set error on email field
-          setErrors((prev) => ({
-            ...prev,
-            email: "This email is already registered. Please use a different email or sign in.",
-          }));
+          // Check for already_exists error
+          if (errorCode === "already_exists" || generalMessage.toLowerCase().includes("already")) {
+            // Set error on email field if it's an email-related error
+            if (fieldErrors.email || generalMessage.toLowerCase().includes("email")) {
+              setErrors((prev) => ({
+                ...prev,
+                email: "This email is already registered. Please use a different email or sign in.",
+              }));
+            }
 
-          Toast.show({
-            type: "error",
-            text1: "Email already registered",
-            text2: "This email address is already in use. Please use a different email or sign in.",
-            position: "bottom",
-          });
+            Toast.show({
+              type: "error",
+              text1: "Email already registered",
+              text2: "This email address is already in use. Please use a different email or sign in.",
+              position: "bottom",
+              visibilityTime: 5000, // 5 seconds
+            });
+          } else {
+            // Show general error message
+            Toast.show({
+              type: "error",
+              text1: "Registration failed",
+              text2: generalMessage || "There was a problem creating your account. Please try again.",
+              position: "bottom",
+              visibilityTime: 5000, // 5 seconds
+            });
+          }
         } else {
-          // Other ConnectError
+          // No parsed error available, show generic message
           Toast.show({
             type: "error",
             text1: "Registration failed",
-            text2: errorMessage || "There was a problem creating your account. Please try again.",
+            text2: "There was a problem creating your account. Please try again.",
             position: "bottom",
+            visibilityTime: 5000, // 5 seconds
           });
         }
-      } else {
-        // Generic error
-        Toast.show({
-          type: "error",
-          text1: "There was a problem with your request",
-          text2: "Please try again later.",
-          position: "bottom",
-        });
       }
+    } catch (error: any) {
+      // This catch should rarely be hit now, but keep it as a safety net
+      console.error("Unexpected registration error:", error);
+      Toast.show({
+        type: "error",
+        text1: "There was a problem with your request",
+        text2: "Please try again later.",
+        position: "bottom",
+        visibilityTime: 5000, // 5 seconds
+      });
     }
     setLoading(false);
   };

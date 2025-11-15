@@ -11,6 +11,7 @@ import { LoadingMessage } from "@/components/molecules/LoadingMessage";
 import Toast from "react-native-toast-message";
 import userService from "@/services/userService";
 import { ConnectError } from "@connectrpc/connect";
+import { isParsedInternalServerError, isInternalServerError } from "@/utils/errorHandler";
 
 interface FormErrors {
   firstName: string;
@@ -216,15 +217,11 @@ export const UserRegisterForm: React.FC = () => {
               visibilityTime: 5000, // 5 seconds
             });
           } else {
-            // Check for technical errors (internal, authentication, etc.)
-            const isTechnicalError =
-              errorCode === "internal" ||
+            // Check for technical errors (internal, 502, authentication, etc.)
+            const isTechnicalError = isParsedInternalServerError(parsedError) ||
               errorCode === "unauthenticated" ||
-              generalMessage.toLowerCase().includes("internal") ||
               generalMessage.toLowerCase().includes("missing authorization") ||
-              generalMessage.toLowerCase().includes("unauthorized") ||
-              generalMessage.toLowerCase().includes("rpc error") ||
-              generalMessage.toLowerCase().includes("grpc");
+              generalMessage.toLowerCase().includes("unauthorized");
 
             if (isTechnicalError) {
               // Don't show technical errors to users
@@ -260,12 +257,13 @@ export const UserRegisterForm: React.FC = () => {
     } catch (error: any) {
       // This catch should rarely be hit now, but keep it as a safety net
       console.error("Unexpected registration error:", error);
+      const isInternalError = isInternalServerError(error);
       Toast.show({
         type: "error",
-        text1: "There was a problem with your request",
-        text2: "Please try again later.",
+        text1: "Registration failed",
+        text2: isInternalError ? "An internal error occurred. Please try again later." : "Please try again later.",
         position: "bottom",
-        visibilityTime: 5000, // 5 seconds
+        visibilityTime: 5000,
       });
     }
     setLoading(false);

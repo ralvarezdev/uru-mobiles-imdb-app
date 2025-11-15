@@ -8,6 +8,7 @@ import { GetMyProfileResponse, UpdateProfileRequest } from "@ralvarezdev/proto-u
 import userService from "@/services/userService";
 import Toast from "react-native-toast-message";
 import { LoadingMessage } from "../LoadingMessage";
+import { isParsedInternalServerError, isInternalServerError } from "@/utils/errorHandler";
 
 interface ModalEditUserProfileProps {
   user: GetMyProfileResponse | undefined;
@@ -98,29 +99,8 @@ export const ModalEditUserProfile: React.FC<ModalEditUserProfileProps> = ({ user
         const parsedError = userService.getLastError();
         
         if (parsedError) {
-          // Check if it's an internal error that shouldn't be shown to users
-          const errorCodeLower = parsedError.errorCode?.toLowerCase() || "";
-          const originalMsgLower = parsedError.originalMessage?.toLowerCase() || "";
-          const generalMsgLower = parsedError.generalMessage?.toLowerCase() || "";
-          
-          const isInternalError = 
-            errorCodeLower === "internal" ||
-            errorCodeLower.includes("internal_error") ||
-            originalMsgLower.includes("internal") ||
-            generalMsgLower.includes("internal") ||
-            originalMsgLower.includes("internal server error") ||
-            generalMsgLower.includes("internal server error") ||
-            // Check for technical error patterns
-            originalMsgLower.includes("rpc error") ||
-            generalMsgLower.includes("rpc error") ||
-            originalMsgLower.includes("grpc") ||
-            generalMsgLower.includes("grpc") ||
-            // Check for authentication/authorization errors
-            errorCodeLower === "unauthenticated" ||
-            originalMsgLower.includes("missing authorization") ||
-            generalMsgLower.includes("missing authorization") ||
-            originalMsgLower.includes("unauthorized") ||
-            generalMsgLower.includes("unauthorized");
+          // Check if it's an internal error (including 502) that shouldn't be shown to users
+          const isInternalError = isParsedInternalServerError(parsedError);
           
           // For validation errors, show field-specific messages
           if (parsedError.isValidationError && parsedError.messages.length > 0) {
@@ -164,9 +144,11 @@ export const ModalEditUserProfile: React.FC<ModalEditUserProfileProps> = ({ user
     } catch (error: any) {
       // This catch should rarely be hit now, but keep it as a safety net
       console.error("Unexpected update error:", error);
+      const isInternalError = isInternalServerError(error);
       Toast.show({
         type: "error",
-        text1: "Could not update profile. Please try again.",
+        text1: "Could not update profile",
+        text2: isInternalError ? "An internal error occurred. Please try again later." : "Please try again.",
         position: "bottom",
         visibilityTime: 5000, // 5 seconds
       });

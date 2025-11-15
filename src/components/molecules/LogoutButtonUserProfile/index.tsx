@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import authService from "@/services/authService";
 import { LogOutRequest } from "@ralvarezdev/proto-auth-ts";
 import Toast from "react-native-toast-message";
+import { isParsedInternalServerError, isInternalServerError } from "@/utils/errorHandler";
 
 export const LogoutButtonUserProfile: React.FC = () => {
   const handleLogout = async () => {
@@ -30,28 +31,8 @@ export const LogoutButtonUserProfile: React.FC = () => {
         const parsedError = authService.getLastError();
 
         if (parsedError) {
-          // Check if it's an internal or authentication error that shouldn't be shown to users
-          const errorCodeLower = parsedError.errorCode?.toLowerCase() || "";
-          const originalMsgLower = parsedError.originalMessage?.toLowerCase() || "";
-          const generalMsgLower = parsedError.generalMessage?.toLowerCase() || "";
-
-          const isInternalError =
-            errorCodeLower === "internal" ||
-            errorCodeLower.includes("internal_error") ||
-            originalMsgLower.includes("internal") ||
-            generalMsgLower.includes("internal") ||
-            originalMsgLower.includes("internal server error") ||
-            generalMsgLower.includes("internal server error") ||
-            originalMsgLower.includes("rpc error") ||
-            generalMsgLower.includes("rpc error") ||
-            originalMsgLower.includes("grpc") ||
-            generalMsgLower.includes("grpc") ||
-            // Check for authentication/authorization errors
-            errorCodeLower === "unauthenticated" ||
-            originalMsgLower.includes("missing authorization") ||
-            generalMsgLower.includes("missing authorization") ||
-            originalMsgLower.includes("unauthorized") ||
-            generalMsgLower.includes("unauthorized");
+          // Check if it's an internal error (including 502) that shouldn't be shown to users
+          const isInternalError = isParsedInternalServerError(parsedError);
 
           if (isInternalError) {
             // Don't show internal/authentication errors to users
@@ -82,13 +63,14 @@ export const LogoutButtonUserProfile: React.FC = () => {
         }
       }
     } catch (error: any) {
-      // console.error("Error logging out:", error);
+      console.error("Error logging out:", error);
+      const isInternalError = isInternalServerError(error);
       Toast.show({
         type: "error",
-        text1: "Could not logout. Please try again.",
-        text2: error?.message || "An error occurred while logging out.",
+        text1: "Could not logout",
+        text2: isInternalError ? "An internal error occurred. Please try again later." : (error?.message || "An error occurred while logging out."),
         position: "bottom",
-        visibilityTime: 5000, // 5 seconds
+        visibilityTime: 5000,
       });
     }
   };

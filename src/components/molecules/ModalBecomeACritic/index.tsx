@@ -6,6 +6,7 @@ import { useState } from "react";
 import { View } from "react-native";
 import Toast from "react-native-toast-message";
 import { LoadingMessage } from "../LoadingMessage";
+import { isParsedInternalServerError, isInternalServerError } from "@/utils/errorHandler";
 
 interface ModalBecomeACriticProps {
   visible: boolean;
@@ -40,28 +41,8 @@ export const ModalBecomeACritic: React.FC<ModalBecomeACriticProps> = ({ visible,
         const parsedError = authService.getLastError();
         
         if (parsedError) {
-          // Check if it's an internal error that shouldn't be shown to users
-          const errorCodeLower = parsedError.errorCode?.toLowerCase() || "";
-          const originalMsgLower = parsedError.originalMessage?.toLowerCase() || "";
-          const generalMsgLower = parsedError.generalMessage?.toLowerCase() || "";
-          
-          const isInternalError = 
-            errorCodeLower === "internal" ||
-            errorCodeLower.includes("internal_error") ||
-            originalMsgLower.includes("internal") ||
-            generalMsgLower.includes("internal") ||
-            originalMsgLower.includes("internal server error") ||
-            generalMsgLower.includes("internal server error") ||
-            originalMsgLower.includes("rpc error") ||
-            generalMsgLower.includes("rpc error") ||
-            originalMsgLower.includes("grpc") ||
-            generalMsgLower.includes("grpc") ||
-            // Check for authentication/authorization errors
-            errorCodeLower === "unauthenticated" ||
-            originalMsgLower.includes("missing authorization") ||
-            generalMsgLower.includes("missing authorization") ||
-            originalMsgLower.includes("unauthorized") ||
-            generalMsgLower.includes("unauthorized");
+          // Check if it's an internal error (including 502) that shouldn't be shown to users
+          const isInternalError = isParsedInternalServerError(parsedError);
           
           if (isInternalError) {
             // Don't show internal errors to users
@@ -95,12 +76,13 @@ export const ModalBecomeACritic: React.FC<ModalBecomeACriticProps> = ({ visible,
     } catch (error: any) {
       // This catch should rarely be hit now, but keep it as a safety net
       console.error("Unexpected request critic error:", error);
+      const isInternalError = isInternalServerError(error);
       Toast.show({
         type: "error",
         text1: "Could not send request",
-        text2: "An unexpected error occurred. Please try again later.",
+        text2: isInternalError ? "An internal error occurred. Please try again later." : "An unexpected error occurred. Please try again later.",
         position: "bottom",
-        visibilityTime: 5000, // 5 seconds
+        visibilityTime: 5000,
       });
     } finally {
       setLoading(false);

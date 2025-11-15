@@ -16,6 +16,7 @@ import { Timestamp } from "@bufbuild/protobuf/wkt";
 import movieService from "@/services/movieService";
 import { LoadingMessage } from "@/components/molecules/LoadingMessage";
 import Toast from "react-native-toast-message";
+import { isInternalServerError } from "@/utils/errorHandler";
 
 import { styles } from "./style";
 import MoviePoster from "@/components/organisms/MoviePoster";
@@ -50,7 +51,7 @@ export const mockMovieDetail: GetMovieDetailsResponse = {
   originalTitle: "The Dark Knight",
   overview:
     "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice. With the help of allies Lt. Jim Gordon and DA Harvey Dent, Batman has been able to keep a tight lid on crime in Gotham. But when a deranged mastermind criminal known as the Joker suddenly throws the town into chaos, the caped crusader is pushed to the limits of his physical and mental endurance.",
-  popularity: 85.0,
+  popularity: 85,
   posterUrl: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
   productionCompanies: [
     { $typeName: "ralvarezdev.v1.ProductionCompany", id: 923, name: "Legendary Pictures" },
@@ -73,7 +74,6 @@ export const mockMovieDetail: GetMovieDetailsResponse = {
 
 const MovieDetailScreen = () => {
   const { movieId } = useLocalSearchParams();
-  // const movieId = params.movieId ? parseInt(params.movieId as string, 10) : null;
   const router = useRouter();
   const [movie, setMovie] = useState<GetMovieDetailsResponse | null>(null);
   const [reviews, setReviews] = useState<GetMovieReviewsResponse | null>(null);
@@ -108,14 +108,31 @@ const MovieDetailScreen = () => {
     setLoading(true);
     try {
       const request: GetMovieDetailsRequest = {
-        id: parseInt(movieId as string, 10),
+        id: Number.parseInt(movieId as string, 10),
         $typeName: "ralvarezdev.v1.GetMovieDetailsRequest" as const,
       };
       const response: GetMovieDetailsResponse = await movieService.getDetail(request);
       setMovie(response);
     } catch (error: any) {
       console.error("Error loading movie detail:", error);
-      setNotFound(true);
+
+      // Check if it's a 502 or other internal server error
+      const isInternalError = isInternalServerError(error);
+
+      if (isInternalError) {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "An internal error occurred. Please try again later.",
+          position: "bottom",
+          visibilityTime: 5000,
+        });
+        // Don't set notFound for internal errors, just show error and go back
+        router.back();
+      } else {
+        // For other errors (like 404), show not found
+        setNotFound(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -134,8 +151,21 @@ const MovieDetailScreen = () => {
       setReviews(response);
     } catch (error: any) {
       console.error("Error loading movie reviews:", error);
-      // No mostramos error al usuario, solo logueamos el error
-      // Las reviews son opcionales
+
+      // Check if it's a 502 or other internal server error
+      const isInternalError = isInternalServerError(error);
+
+      if (isInternalError) {
+        // For internal errors, show a generic message
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "An internal error occurred while loading reviews. Please try again later.",
+          position: "bottom",
+          visibilityTime: 5000,
+        });
+      }
+      // For other errors, we don't show them to the user since reviews are optional
     }
   };
 
@@ -161,7 +191,7 @@ const MovieDetailScreen = () => {
     setSubmittingReview(true);
     try {
       const request: AddMovieReviewRequest = {
-        id: parseInt(movieId as string, 10),
+        id: Number.parseInt(movieId as string, 10),
         rating: rating,
         review: review.trim() || undefined,
         $typeName: "ralvarezdev.v1.AddMovieReviewRequest" as const,
@@ -183,13 +213,28 @@ const MovieDetailScreen = () => {
       await loadMovieReviews();
     } catch (error: any) {
       console.error("Error adding review:", error);
-      Toast.show({
-        type: "error",
-        text1: "Error adding review",
-        text2: error?.message || "Could not add your review. Please try again.",
-        position: "bottom",
-        visibilityTime: 5000, // 5 seconds
-      });
+
+      // Check if it's a 502 or other internal server error
+      const isInternalError = isInternalServerError(error);
+
+      if (isInternalError) {
+        Toast.show({
+          type: "error",
+          text1: "Error adding review",
+          text2: "An internal error occurred. Please try again later.",
+          position: "bottom",
+          visibilityTime: 5000,
+        });
+      } else {
+        // For other errors, show the error message
+        Toast.show({
+          type: "error",
+          text1: "Error adding review",
+          text2: error?.message || "Could not add your review. Please try again.",
+          position: "bottom",
+          visibilityTime: 5000,
+        });
+      }
     } finally {
       setSubmittingReview(false);
     }

@@ -12,6 +12,8 @@ import { GetMyProfileResponse, GetMyProfileRequest } from "@ralvarezdev/proto-us
 import React, { useEffect, useState } from "react";
 import { View, ScrollView } from "react-native";
 import { styles } from "./style";
+import Toast from "react-native-toast-message";
+import { isInternalServerError } from "@/utils/errorHandler";
 
 export const UserProfile: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -39,12 +41,25 @@ export const UserProfile: React.FC = () => {
 
   const loadUserProfile = async () => {
     setLoading(true);
-    const getMyProfileRequest: GetMyProfileRequest = {
-      $typeName: "ralvarezdev.v1.GetMyProfileRequest",
-    };
-    const user = await userService.me(getMyProfileRequest);
-    setUser(user);
-    setLoading(false);
+    try {
+      const getMyProfileRequest: GetMyProfileRequest = {
+        $typeName: "ralvarezdev.v1.GetMyProfileRequest",
+      };
+      const user = await userService.me(getMyProfileRequest);
+      setUser(user);
+    } catch (error: any) {
+      console.error("Error loading user profile:", error);
+      const isInternalError = isInternalServerError(error);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: isInternalError ? "An internal error occurred while loading your profile. Please try again later." : "Could not load your profile. Please try again.",
+        position: "bottom",
+        visibilityTime: 5000,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   // useEffect(() => {

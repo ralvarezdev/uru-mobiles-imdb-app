@@ -9,6 +9,7 @@ import { router, useRouter } from "expo-router";
 import { LoadingMessage } from "@/components/molecules/LoadingMessage";
 import Toast from "react-native-toast-message";
 import { authService } from "@/services/authService";
+import { isParsedInternalServerError, isInternalServerError } from "@/utils/errorHandler";
 
 interface FormErrors {
   username: string;
@@ -112,15 +113,11 @@ export const LoginForm: React.FC = () => {
               visibilityTime: 5000, // 5 seconds
             });
           } else {
-            // Check for other technical errors (internal, authentication, etc.)
-            const isTechnicalError =
-              errorCode === "internal" ||
+            // Check for other technical errors (internal, 502, authentication, etc.)
+            const isTechnicalError = isParsedInternalServerError(parsedError) ||
               errorCode === "unauthenticated" ||
-              generalMessage.toLowerCase().includes("internal") ||
               generalMessage.toLowerCase().includes("missing authorization") ||
-              generalMessage.toLowerCase().includes("unauthorized") ||
-              generalMessage.toLowerCase().includes("rpc error") ||
-              generalMessage.toLowerCase().includes("grpc");
+              generalMessage.toLowerCase().includes("unauthorized");
 
             if (isTechnicalError) {
               // Don't show technical errors to users
@@ -156,12 +153,13 @@ export const LoginForm: React.FC = () => {
     } catch (error: any) {
       // This catch should rarely be hit now, but keep it as a safety net
       console.error("Unexpected login error:", error);
+      const isInternalError = isInternalServerError(error);
       Toast.show({
         type: "error",
-        text1: "There was a problem with your request",
-        text2: "Please try again later.",
+        text1: "Login failed",
+        text2: isInternalError ? "An internal error occurred. Please try again later." : "Please try again later.",
         position: "bottom",
-        visibilityTime: 5000, // 5 seconds
+        visibilityTime: 5000,
       });
     }
     setLoading(false);

@@ -10,6 +10,7 @@ import { ChangeEmailRequest } from "@ralvarezdev/proto-auth-ts/ralvarezdev/v1/au
 import authService from "@/services/authService";
 import Toast from "react-native-toast-message";
 import { router } from "expo-router";
+import { isParsedInternalServerError, isInternalServerError } from "@/utils/errorHandler";
 
 interface ModalUpdateEmailProps {
   visible: boolean;
@@ -103,28 +104,8 @@ export const ModalUpdateEmail: React.FC<ModalUpdateEmailProps> = ({ visible, onC
         console.log("Email change failed, parsed error:", parsedError);
 
         if (parsedError) {
-          // Check if it's an internal error that shouldn't be shown to users
-          const errorCodeLower = parsedError.errorCode?.toLowerCase() || "";
-          const originalMsgLower = parsedError.originalMessage?.toLowerCase() || "";
-          const generalMsgLower = parsedError.generalMessage?.toLowerCase() || "";
-
-          const isInternalError =
-            errorCodeLower === "internal" ||
-            errorCodeLower.includes("internal_error") ||
-            originalMsgLower.includes("internal") ||
-            generalMsgLower.includes("internal") ||
-            originalMsgLower.includes("internal server error") ||
-            generalMsgLower.includes("internal server error") ||
-            originalMsgLower.includes("rpc error") ||
-            generalMsgLower.includes("rpc error") ||
-            originalMsgLower.includes("grpc") ||
-            generalMsgLower.includes("grpc") ||
-            // Check for authentication/authorization errors
-            errorCodeLower === "unauthenticated" ||
-            originalMsgLower.includes("missing authorization") ||
-            generalMsgLower.includes("missing authorization") ||
-            originalMsgLower.includes("unauthorized") ||
-            generalMsgLower.includes("unauthorized");
+          // Check if it's an internal error (including 502) that shouldn't be shown to users
+          const isInternalError = isParsedInternalServerError(parsedError);
 
           if (isInternalError) {
             // Don't show internal errors to users
@@ -157,12 +138,13 @@ export const ModalUpdateEmail: React.FC<ModalUpdateEmailProps> = ({ visible, onC
     } catch (error: any) {
       // This catch should rarely be hit now, but keep it as a safety net
       console.error("Unexpected change email error:", error);
+      const isInternalError = isInternalServerError(error);
       Toast.show({
-        type: "error", // 'success', 'error', 'info'
-        text1: "Could not change email. Please try again.",
-        // text2: "You will be redirected to login...",
-        position: "bottom", // o 'top'
-        visibilityTime: 5000, // 5 seconds
+        type: "error",
+        text1: "Could not change email",
+        text2: isInternalError ? "An internal error occurred. Please try again later." : "Please try again.",
+        position: "bottom",
+        visibilityTime: 5000,
       });
     } finally {
       setLoading(false);

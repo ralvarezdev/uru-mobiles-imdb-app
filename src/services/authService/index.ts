@@ -202,8 +202,44 @@ export class AuthService {
       return false;
     } catch (err: any) {
       console.error('Error refreshing token:', err);
-      // If refresh fails, clear tokens
-      this.setTokens(null, null);
+      // Only clear tokens if the error is specifically a token authentication failure
+      // Don't clear tokens for business logic errors, network errors, or other issues
+      if (err instanceof ConnectError) {
+        const httpStatus = (err as any).httpStatus;
+        const errorCode = String((err as any).code || "").toLowerCase();
+        const errorMessage = (err.message || "").toLowerCase();
+        
+        // Check if it's a real token authentication failure
+        // Clear tokens only if:
+        // 1. It's a 401/403 AND the error is specifically about token being invalid/expired
+        // 2. OR the error code is unauthenticated (but not invalid_argument)
+        const isTokenAuthFailure = 
+          (httpStatus === 401 || httpStatus === 403) &&
+          ((errorMessage.includes("token") || 
+            errorMessage.includes("expired") || 
+            (errorMessage.includes("invalid") && !errorMessage.includes("password"))) ||
+           errorCode === "unauthenticated");
+        
+        // Don't clear tokens for business logic errors
+        const isBusinessError = 
+          errorCode === "invalid_argument" ||
+          errorMessage.includes("password") ||
+          errorMessage.includes("validation") ||
+          errorMessage.includes("incorrect");
+        
+        if (isTokenAuthFailure && !isBusinessError) {
+          // Only clear tokens for real token authentication failures
+          console.warn('Token refresh failed due to authentication error, clearing tokens');
+          this.setTokens(null, null);
+        } else {
+          // Keep tokens - this might be a network error, business logic error, or temporary issue
+          console.warn('Token refresh failed but keeping tokens - error may be temporary or business-related');
+        }
+      } else {
+        // For non-ConnectError exceptions (network errors, etc.), don't clear tokens
+        // This prevents clearing tokens on network errors or other unexpected issues
+        console.warn('Token refresh failed with non-ConnectError, keeping tokens');
+      }
       return false;
     }
   }

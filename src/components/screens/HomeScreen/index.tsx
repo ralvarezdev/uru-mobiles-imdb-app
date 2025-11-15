@@ -5,7 +5,7 @@ import { SearchBar } from "@/components/molecules/SearchBar";
 import { FiltersChips } from "@/components/molecules/FiltersChips";
 import { SortSelector } from "@/components/molecules/SortSelector";
 import { MovieList } from "@/components/organisms/MovieList";
-import { SimpleMovie, Genre, DiscoverMoviesRequest, SearchMoviesRequest, SortBy } from "@ralvarezdev/proto-movies-ts";
+import { SimpleMovie, Genre, DiscoverMoviesRequest, SearchMoviesRequest, SortBy, GetTopRatedMoviesRequest } from "@ralvarezdev/proto-movies-ts";
 import { LoadingMessage } from "@/components/molecules/LoadingMessage";
 import movieService from "@/services/movieService";
 import Toast from "react-native-toast-message";
@@ -84,20 +84,11 @@ export const HomeScreen = () => {
     try {
       let result;
 
-      // If there's a search query, use searchMovies
-      if (debouncedSearch.trim()) {
-        const searchMoviesProps: SearchMoviesRequest = {
-          query: debouncedSearch.trim(),
-          $typeName: "ralvarezdev.v1.SearchMoviesRequest",
-        };
-        result = await movieService.search(searchMoviesProps);
-        if (result && result.$typeName === "ralvarezdev.v1.SearchMoviesResponse") {
-          setMovies(result.results || []);
-        } else {
-          handleError();
-        }
-      } else {
-        // Use discoverMovies for genre filtering or default discovery
+      // Use discoverMovies only when genre or sortBy is selected
+      const shouldUseDiscover = selectedGenre !== null || sortBy !== null;
+
+      if (shouldUseDiscover) {
+        // Use discoverMovies for genre filtering or sorting
         const discoverMoviesProps: DiscoverMoviesRequest = {
           $typeName: "ralvarezdev.v1.DiscoverMoviesRequest",
           withGenres: selectedGenre === null ? [] : [String(selectedGenre)],
@@ -111,20 +102,32 @@ export const HomeScreen = () => {
           ...(sortBy !== null && { sortBy }),
         };
 
-        // Commented out: original getTopRatedMovies implementation
-        // const getTopRatedMoviesProps: GetTopRatedMoviesRequest = {
-        //   $typeName: "ralvarezdev.v1.GetTopRatedMoviesRequest",
-        // };
-        // const result = await movieService.getTopRatedMovies(getTopRatedMoviesProps);
-        // if (result && result.$typeName === "ralvarezdev.v1.GetTopRatedMoviesResponse") {
-        //   setMovies(result.results);
-        // } else {
-        //   handleError();
-        // }
-
         result = await movieService.discoverMovies(discoverMoviesProps);
         if (result?.$typeName === "ralvarezdev.v1.DiscoverMoviesResponse") {
           setMovies(result.results ?? []);
+        } else {
+          handleError();
+        }
+      } else if (debouncedSearch.trim()) {
+        // Default: use searchMovies when there's a search query
+        const searchMoviesProps: SearchMoviesRequest = {
+          query: debouncedSearch.trim(),
+          $typeName: "ralvarezdev.v1.SearchMoviesRequest",
+        };
+        result = await movieService.search(searchMoviesProps);
+        if (result && result.$typeName === "ralvarezdev.v1.SearchMoviesResponse") {
+          setMovies(result.results || []);
+        } else {
+          handleError();
+        }
+      } else {
+        // Default: use getTopRatedMovies when no search, genre, or sort
+        const getTopRatedMoviesProps: GetTopRatedMoviesRequest = {
+          $typeName: "ralvarezdev.v1.GetTopRatedMoviesRequest",
+        };
+        result = await movieService.getTopRatedMovies(getTopRatedMoviesProps);
+        if (result && result.$typeName === "ralvarezdev.v1.GetTopRatedMoviesResponse") {
+          setMovies(result.results || []);
         } else {
           handleError();
         }

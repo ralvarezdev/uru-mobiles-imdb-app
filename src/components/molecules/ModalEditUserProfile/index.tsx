@@ -14,6 +14,8 @@ interface ModalEditUserProfileProps {
   user: GetMyProfileResponse | undefined;
   visible: boolean;
   onClose: () => void;
+  onFirstNameChange: (text: string) => void;
+  onLastNameChange: (text: string) => void;
 }
 
 interface FormErrors {
@@ -21,7 +23,7 @@ interface FormErrors {
   lastName: string;
 }
 
-export const ModalEditUserProfile: React.FC<ModalEditUserProfileProps> = ({ user, visible, onClose }) => {
+export const ModalEditUserProfile: React.FC<ModalEditUserProfileProps> = ({ user, visible, onClose, onFirstNameChange, onLastNameChange }) => {
   const [editFormData, setEditFormData] = useState<UpdateProfileRequest>({
     firstName: user?.firstName,
     lastName: user?.lastName,
@@ -76,16 +78,24 @@ export const ModalEditUserProfile: React.FC<ModalEditUserProfileProps> = ({ user
     setLoading(true);
     // Clear any previous errors before making the request
     userService.clearLastError();
-    
+
     try {
       const response = await userService.update(editFormData);
 
-      if (response && response.$typeName === "ralvarezdev.v1.UpdateProfileResponse") {
+      if (response?.$typeName === "ralvarezdev.v1.UpdateProfileResponse") {
         console.log("Profile update successful");
-        // Close modal first
+        if (user?.firstName !== editFormData?.firstName && editFormData?.firstName) {
+          onFirstNameChange(editFormData?.firstName);
+        } else if (user?.firstName) {
+          onFirstNameChange(user?.firstName);
+        }
+        if (user?.lastName !== editFormData?.lastName && editFormData?.lastName) {
+          onLastNameChange(editFormData?.lastName);
+        } else if (user?.lastName) {
+          onLastNameChange(user?.lastName);
+        }
         onClose();
-        
-        // Show toast after modal closes (using global Toast instance)
+
         setTimeout(() => {
           Toast.show({
             type: "success",
@@ -95,16 +105,12 @@ export const ModalEditUserProfile: React.FC<ModalEditUserProfileProps> = ({ user
           });
         }, 100); // Small delay to ensure modal is closed
       } else {
-        // Response is undefined, check for parsed error
         const parsedError = userService.getLastError();
-        
+
         if (parsedError) {
-          // Check if it's an internal error (including 502) that shouldn't be shown to users
           const isInternalError = isParsedInternalServerError(parsedError);
-          
-          // For validation errors, show field-specific messages
+
           if (parsedError.isValidationError && parsedError.messages.length > 0) {
-            // Show first validation error
             const firstError = parsedError.messages[0];
             Toast.show({
               type: "error",
@@ -114,7 +120,6 @@ export const ModalEditUserProfile: React.FC<ModalEditUserProfileProps> = ({ user
               visibilityTime: 5000, // 5 seconds
             });
           } else if (isInternalError) {
-            // Don't show internal errors to users - always show generic message
             Toast.show({
               type: "error",
               text1: "Could not update profile",
@@ -123,7 +128,6 @@ export const ModalEditUserProfile: React.FC<ModalEditUserProfileProps> = ({ user
               visibilityTime: 5000, // 5 seconds
             });
           } else {
-            // Show user-friendly error message
             Toast.show({
               type: "error",
               text1: "Could not update profile",

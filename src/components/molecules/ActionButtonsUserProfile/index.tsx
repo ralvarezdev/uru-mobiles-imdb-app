@@ -10,16 +10,24 @@ import { GetMyProfileResponse } from "@ralvarezdev/proto-user-ts";
 
 interface ActionButtonsUserProfileProps {
   user: GetMyProfileResponse | undefined;
+  onFirstNameChange: (text: string) => void;
+  onLastNameChange: (text: string) => void;
 }
 
-export const ActionButtonsUserProfile: React.FC<ActionButtonsUserProfileProps> = ({ user }) => {
+export const ActionButtonsUserProfile: React.FC<ActionButtonsUserProfileProps> = ({ user, onFirstNameChange, onLastNameChange }) => {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   return (
     <View style={styles.actionButtons}>
       <Button title="Edit my profile" onPress={() => setIsEditModalVisible(true)} variant="primary" />
       <Button title="Delete my account" onPress={() => setIsDeleteModalVisible(true)} variant="primary" />
-      <ModalEditUserProfile user={user} visible={isEditModalVisible} onClose={() => setIsEditModalVisible(false)} />
+      <ModalEditUserProfile
+        user={user}
+        visible={isEditModalVisible}
+        onFirstNameChange={onFirstNameChange}
+        onLastNameChange={onLastNameChange}
+        onClose={() => setIsEditModalVisible(false)}
+      />
       <ModalDeleteUserProfileAccount visible={isDeleteModalVisible} onClose={() => setIsDeleteModalVisible(false)} />
     </View>
   );

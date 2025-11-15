@@ -39,9 +39,9 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
     };
     let errorMessage = "";
 
-    if (!rating || rating < 1 || rating > 5) {
-      newErrors.rating = "Please select a rating between 1 and 5 stars";
-      errorMessage = "Please select a rating between 1 and 5 stars";
+    if (!rating || rating < 1 || rating > 10) {
+      newErrors.rating = "Please select a rating between 1 and 10";
+      errorMessage = "Please select a rating between 1 and 10";
       isValid = false;
     }
 

@@ -53,7 +53,9 @@ export const UserProfile: React.FC = () => {
       Toast.show({
         type: "error",
         text1: "Error",
-        text2: isInternalError ? "An internal error occurred while loading your profile. Please try again later." : "Could not load your profile. Please try again.",
+        text2: isInternalError
+          ? "An internal error occurred while loading your profile. Please try again later."
+          : "Could not load your profile. Please try again.",
         position: "bottom",
         visibilityTime: 5000,
       });
@@ -96,7 +98,11 @@ export const UserProfile: React.FC = () => {
         <UserProfileInformation user={user} />
         <SecuritySectionUserProfile user={user} onEmailChange={(text) => handleChangeUser("email", text)} />
         {/* <RequestToBeCriticUserProfile user={user} userRoles={userRoles} /> */}
-        <ActionButtonsUserProfile user={user} />
+        <ActionButtonsUserProfile
+          user={user}
+          onFirstNameChange={(text) => handleChangeUser("firstName", text)}
+          onLastNameChange={(text) => handleChangeUser("lastName", text)}
+        />
         <LogoutButtonUserProfile />
       </ScrollView>
     </View>

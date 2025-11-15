@@ -90,7 +90,7 @@ export class MovieService {
   public async getTopRatedMovies(props: GetTopRatedMoviesRequest): Promise<GetTopRatedMoviesResponse | undefined> {
     try {
       const moviesResponse = await this.client.getTopRatedMovies(props);
-      console.log("getTopRatedMovies response:", moviesResponse);
+      // console.log("getTopRatedMovies response:", moviesResponse);
       
       // Clear any previous errors on success
       (this as any)._lastError = undefined;
@@ -110,7 +110,7 @@ export class MovieService {
     try {
       console.log("getReviews props:", props);
       const movieDetailResponse = await this.client.getMovieDetails(props);
-      
+      // console.log("getDetail response:", movieDetailResponse);
       (this as any)._lastError = undefined;
       
       return movieDetailResponse as GetMovieDetailsResponse;
@@ -145,9 +145,8 @@ export class MovieService {
 
   public async getReviews(props: GetMovieReviewsRequest): Promise<GetMovieReviewsResponse | undefined> {
     try {
-      console.log("getReviews props:", props);
       const reviewsResponse = await this.client.getMovieReviews(props);
-      
+      console.log("getReviews response:", reviewsResponse);
       (this as any)._lastError = undefined;
       
       return reviewsResponse as GetMovieReviewsResponse;

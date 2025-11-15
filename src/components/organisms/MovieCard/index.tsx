@@ -11,6 +11,17 @@ export interface MovieCardProps {
 export const MovieCard = ({ movie }: MovieCardProps) => {
   const yearText = movie.releaseDate?.seconds ? new Date(Number(movie.releaseDate.seconds) * 1000).getFullYear() : "—";
 
+  // Format ratings to 1 decimal place
+  const formatRating = (rating: number | undefined | null): string => {
+    if (rating === undefined || rating === null || Number.isNaN(rating)) {
+      return "--";
+    }
+    return Number(rating).toFixed(1);
+  };
+
+  const usersRating = formatRating(movie.ratingAverageUsers);
+  const criticsRating = formatRating(movie.ratingAverageCritics);
+
   const onPress = () => {
     router.push({ pathname: `/(tabs)/home/movie/[movieId]`, params: { movieId: movie.id } });
   };
@@ -31,12 +42,12 @@ export const MovieCard = ({ movie }: MovieCardProps) => {
           <View style={styles.scoreBlock}>
             <Text style={styles.scoreLabel}>Usuarios</Text>
             <Text style={styles.star}>⭐</Text>
-            <Text style={styles.scoreValue}>{movie.ratingAverageUsers ?? "--"}</Text>
+            <Text style={styles.scoreValue}>{usersRating}</Text>
           </View>
           <View style={styles.scoreBlock}>
             <Text style={styles.scoreLabel}>Críticos</Text>
             <Text style={styles.star}>⭐</Text>
-            <Text style={styles.scoreValue}>{movie.ratingAverageCritics ?? "--"}</Text>
+            <Text style={styles.scoreValue}>{criticsRating}</Text>
           </View>
         </View>
       </View>

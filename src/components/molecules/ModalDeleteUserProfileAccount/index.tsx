@@ -8,6 +8,7 @@ import { View } from "react-native";
 import Toast from "react-native-toast-message";
 import { LoadingMessage } from "../LoadingMessage";
 import { isParsedInternalServerError, isInternalServerError } from "@/utils/errorHandler";
+import { router } from "expo-router";
 
 interface ModalDeleteUserProfileAccountProps {
   visible: boolean;
@@ -20,7 +21,7 @@ interface FormErrors {
 
 export const ModalDeleteUserProfileAccount: React.FC<ModalDeleteUserProfileAccountProps> = ({ visible, onClose }) => {
   const [deleteFormData, setDeleteFormData] = useState<DeleteAccountRequest>({
-    password: "",
+    password: "P4$sw0rD#12345678",
     $typeName: "ralvarezdev.v1.DeleteAccountRequest",
   });
   const [errors, setErrors] = useState<FormErrors>({
@@ -69,11 +70,11 @@ export const ModalDeleteUserProfileAccount: React.FC<ModalDeleteUserProfileAccou
     setLoading(true);
     // Clear any previous errors before making the request
     userService.clearLastError();
-    
+
     try {
       const response = await userService.delete(deleteFormData);
-      
-      if (response && response.$typeName === "ralvarezdev.v1.DeleteAccountResponse") {
+
+      if (response?.$typeName === "ralvarezdev.v1.DeleteAccountResponse") {
         console.log("Cuenta eliminada");
         Toast.show({
           type: "success",
@@ -85,14 +86,15 @@ export const ModalDeleteUserProfileAccount: React.FC<ModalDeleteUserProfileAccou
         onClose();
         setDeleteFormData({ password: "", $typeName: "ralvarezdev.v1.DeleteAccountRequest" });
         setConfirmDelete(false);
+        router.replace("/");
       } else {
         // Response is undefined, check for parsed error
         const parsedError = userService.getLastError();
-        
+
         if (parsedError) {
           // Check if it's an internal error (including 502) that shouldn't be shown to users
           const isInternalError = isParsedInternalServerError(parsedError);
-          
+
           if (isInternalError) {
             // Don't show internal errors to users
             Toast.show({

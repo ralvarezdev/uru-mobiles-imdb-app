@@ -1,4 +1,4 @@
-import { MoviesService as MoviesServiceProto, SearchMoviesRequest, SearchMoviesResponse, GetMovieDetailsRequest, GetMovieDetailsResponse, AddMovieReviewRequest, AddMovieReviewResponse, GetMovieReviewsRequest, GetMovieReviewsResponse, GetTopRatedMoviesRequest, GetTopRatedMoviesResponse } from "@ralvarezdev/proto-movies-ts";
+import { MoviesService as MoviesServiceProto, SearchMoviesRequest, SearchMoviesResponse, GetMovieDetailsRequest, GetMovieDetailsResponse, AddMovieReviewRequest, AddMovieReviewResponse, GetMovieReviewsRequest, GetMovieReviewsResponse, GetTopRatedMoviesRequest, GetTopRatedMoviesResponse, DiscoverMoviesRequest, DiscoverMoviesResponse, GetMovieGenresRequest, GetMovieGenresResponse } from "@ralvarezdev/proto-movies-ts";
 
 import * as Connect from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
@@ -154,6 +154,44 @@ export class MovieService {
       if (err instanceof ConnectError) {
         const parsedError = parseConnectError(err);
         console.log("Parsed getReviews errors:", parsedError);
+        (this as any)._lastError = parsedError;
+      }
+      return undefined;
+    }
+  }
+
+  public async discoverMovies(props: DiscoverMoviesRequest): Promise<DiscoverMoviesResponse | undefined> {
+    try {
+      const discoverResponse = await this.client.discoverMovies(props);
+      // console.log("discoverMovies response:", discoverResponse);
+      
+      // Clear any previous errors on success
+      (this as any)._lastError = undefined;
+      
+      return discoverResponse as DiscoverMoviesResponse;
+    } catch (err) {
+      if (err instanceof ConnectError) {
+        const parsedError = parseConnectError(err);
+        console.log("Parsed discoverMovies errors:", parsedError);
+        (this as any)._lastError = parsedError;
+      }
+      return undefined;
+    }
+  }
+
+  public async getMovieGenres(props: GetMovieGenresRequest): Promise<GetMovieGenresResponse | undefined> {
+    try {
+      const genresResponse = await this.client.getMovieGenres(props);
+      // console.log("getMovieGenres response:", genresResponse);
+      
+      // Clear any previous errors on success
+      (this as any)._lastError = undefined;
+      
+      return genresResponse as GetMovieGenresResponse;
+    } catch (err) {
+      if (err instanceof ConnectError) {
+        const parsedError = parseConnectError(err);
+        console.log("Parsed getMovieGenres errors:", parsedError);
         (this as any)._lastError = parsedError;
       }
       return undefined;

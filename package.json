@@ -13,7 +13,7 @@
     "@connectrpc/connect-web": "^2.1.0",
     "@expo/vector-icons": "^15.0.3",
     "@ralvarezdev/proto-auth-ts": "^0.1.2",
-    "@ralvarezdev/proto-movies-ts": "^0.1.10",
+    "@ralvarezdev/proto-movies-ts": "^0.2.0",
     "@ralvarezdev/proto-user-ts": "^0.1.2",
     "@react-navigation/native": "^7.1.8",
     "expo": "~54.0.20",

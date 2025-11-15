@@ -15,6 +15,7 @@ export const HomeScreen = () => {
   const [selectedGenre, setSelectedGenre] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<SortBy | null>(null);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingGenres, setLoadingGenres] = useState(false);
   const [movies, setMovies] = useState<SimpleMovie[]>([] as SimpleMovie[]);
@@ -25,10 +26,19 @@ export const HomeScreen = () => {
     loadGenres();
   }, []);
 
-  // Load movies when search, genre, or sort changes
+  // Debounce search input - wait 500ms after user stops typing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Load movies when debouncedSearch, genre, or sort changes
   useEffect(() => {
     loadMovies();
-  }, [search, selectedGenre, sortBy]);
+  }, [debouncedSearch, selectedGenre, sortBy]);
 
   const loadGenres = async () => {
     setLoadingGenres(true);
@@ -75,9 +85,9 @@ export const HomeScreen = () => {
       let result;
 
       // If there's a search query, use searchMovies
-      if (search.trim()) {
+      if (debouncedSearch.trim()) {
         const searchMoviesProps: SearchMoviesRequest = {
-          query: search.trim(),
+          query: debouncedSearch.trim(),
           $typeName: "ralvarezdev.v1.SearchMoviesRequest",
         };
         result = await movieService.search(searchMoviesProps);
@@ -125,7 +135,7 @@ export const HomeScreen = () => {
     } finally {
       setLoading(false);
     }
-  }, [search, selectedGenre, sortBy]);
+  }, [debouncedSearch, selectedGenre, sortBy]);
 
   const handleError = () => {
     const parsedError = movieService.getLastError();
@@ -160,7 +170,8 @@ export const HomeScreen = () => {
     setMovies([]);
   };
 
-  if (loading || loadingGenres) {
+  // Only show full screen loading on initial load (genres)
+  if (loadingGenres) {
     return <LoadingMessage message="Cargando peliculas..." />;
   }
 
@@ -171,12 +182,16 @@ export const HomeScreen = () => {
           <HomeHeader />
           <SearchBar value={search} onChange={setSearch} />
           <FiltersChips selected={selectedGenre} onSelect={(value) => setSelectedGenre(typeof value === "number" ? value : null)} genres={genres} />
-          <SortSelector selected={sortBy} onSelect={setSortBy} />
+          {!search.trim() && <SortSelector selected={sortBy} onSelect={setSortBy} />}
         </>
       }
       // footer={<Tag label="Cargando más películas..." color="" textColor="" />}
     >
-      <MovieList movies={movies.map((movie) => ({ ...movie, $typeName: "ralvarezdev.v1.SimpleMovie" }))} />
+      {loading ? (
+        <LoadingMessage message="Buscando películas..." />
+      ) : (
+        <MovieList movies={movies.map((movie) => ({ ...movie, $typeName: "ralvarezdev.v1.SimpleMovie" }))} />
+      )}
     </ScreenTemplate>
   );
 };

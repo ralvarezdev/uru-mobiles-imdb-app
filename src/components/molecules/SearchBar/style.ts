@@ -22,4 +22,8 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 4,
   },
+  clearButton: {
+    padding: 8,
+    marginRight: 4,
+  },
 });

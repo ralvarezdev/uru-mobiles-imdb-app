@@ -257,7 +257,7 @@ export class AuthService {
       
       // Make the request using Connect RPC client
       const res = await this.client.logIn(input);
-      console.log('res login', res);
+      // console.log('res login', res);
 
       // Extract tokens from captured response headers
       let accessToken: string | null = null;
@@ -296,13 +296,13 @@ export class AuthService {
           }
         }
 
-        console.log('tokens from headers - accessToken:', accessToken ? 'present' : 'missing', 'refreshToken:', refreshToken ? 'present' : 'missing');
+        // console.log('tokens from headers - accessToken:', accessToken ? 'present' : 'missing', 'refreshToken:', refreshToken ? 'present' : 'missing');
       }
 
       // Store tokens if found in headers
       if (accessToken || refreshToken) {
-        console.log('accessToken', accessToken);
-        console.log('refreshToken', refreshToken);
+        // console.log('accessToken', accessToken);
+        // console.log('refreshToken', refreshToken);
         this.setTokens(accessToken, refreshToken);
       }
 
@@ -322,7 +322,7 @@ export class AuthService {
   public async getMyRoles(input: ListUserRolesRequest): Promise<ListUserRolesResponse> {
     try {
       const userRoles = await this.client.listUserRoles(input);
-      console.log('user roles', userRoles);
+      // console.log('user roles', userRoles);
       // if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
       return userRoles as ListUserRolesResponse;
     } catch (err: any) {
@@ -358,9 +358,9 @@ export class AuthService {
   public async changePassword(newPassword: ChangePasswordRequest): Promise<ChangePasswordResponse | undefined> {
     try {
       const response = await this.client.changePassword(newPassword);
-      console.log("change password response", response);
-      console.log("change password response type:", typeof response);
-      console.log("change password response $typeName:", response?.$typeName);
+      // console.log("change password response", response);
+      // console.log("change password response type:", typeof response);
+      // console.log("change password response $typeName:", response?.$typeName);
       
       // Clear any previous errors on success
       (this as any)._lastError = undefined;
@@ -395,7 +395,7 @@ export class AuthService {
       const response = await this.client.requestCriticRole?.(request) 
         ?? await this.client.requestRole?.(request);
       
-      console.log("request critic role response", response);
+      // console.log("request critic role response", response);
       
       // Clear any previous errors on success
       (this as any)._lastError = undefined;

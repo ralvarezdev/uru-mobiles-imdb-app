@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { Button } from "../../atoms/Button";
 import { styles } from "./style";
 import { Text } from "@/components/atoms/Text";
@@ -21,7 +22,7 @@ export const RequestToBeCriticUserProfile: React.FC<RequestToBeCriticUserProfile
       {!isCritic && (
         <View style={styles.criticPromoCard}>
           <View style={styles.criticPromoHeader}>
-            <Text style={styles.criticPromoIcon}>🎭</Text>
+            <Ionicons name="ticket" size={32} color="#DF3D36" />
             <View style={styles.criticPromoText}>
               <Text variant="subtitle" style={styles.criticPromoTitle}>
                 Are you a movie critic?
@@ -31,7 +32,16 @@ export const RequestToBeCriticUserProfile: React.FC<RequestToBeCriticUserProfile
               </Text>
             </View>
           </View>
-          <Button title="⭐ Request to be a Critic" onPress={() => setIsCriticModalVisible(true)} variant="primary" />
+          <Button
+            title={
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Ionicons name="star" size={16} color="#fff" style={{ marginRight: 6 }} />
+                <Text style={{ color: "#fff", fontSize: 16, fontWeight: "600" }}>Request to be a Critic</Text>
+              </View>
+            }
+            onPress={() => setIsCriticModalVisible(true)}
+            variant="primary"
+          />
         </View>
       )}
       <ModalBecomeACritic visible={isCriticModalVisible} onClose={() => setIsCriticModalVisible(false)} />

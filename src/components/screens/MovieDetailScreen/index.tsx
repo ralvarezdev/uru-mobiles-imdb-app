@@ -33,50 +33,6 @@ import { AddReviewModal } from "@/components/organisms/AddReviewModal";
 import { EditReviewModal } from "@/components/organisms/EditReviewModal";
 import { MovieNotFound } from "@/components/organisms/MovieNotFound";
 
-// Mock data for testing - using GetMovieDetailsResponse structure
-const releaseDateTimestamp: Timestamp = {
-  $typeName: "google.protobuf.Timestamp",
-  seconds: BigInt(Math.floor(new Date("2008-07-18").getTime() / 1000)),
-  nanos: 0,
-};
-
-export const mockMovieDetail: GetMovieDetailsResponse = {
-  $typeName: "ralvarezdev.v1.GetMovieDetailsResponse",
-  adult: false,
-  budget: BigInt(185000000),
-  genres: [
-    { $typeName: "ralvarezdev.v1.Genre", id: 28, name: "Action" },
-    { $typeName: "ralvarezdev.v1.Genre", id: 80, name: "Crime" },
-    { $typeName: "ralvarezdev.v1.Genre", id: 18, name: "Drama" },
-    { $typeName: "ralvarezdev.v1.Genre", id: 53, name: "Thriller" },
-  ] as Genre[],
-  originalLanguage: "en",
-  homepage: "https://www.warnerbros.com/movies/dark-knight",
-  id: 155,
-  originalTitle: "The Dark Knight",
-  overview:
-    "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice. With the help of allies Lt. Jim Gordon and DA Harvey Dent, Batman has been able to keep a tight lid on crime in Gotham. But when a deranged mastermind criminal known as the Joker suddenly throws the town into chaos, the caped crusader is pushed to the limits of his physical and mental endurance.",
-  popularity: 85,
-  posterUrl: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
-  productionCompanies: [
-    { $typeName: "ralvarezdev.v1.ProductionCompany", id: 923, name: "Legendary Pictures" },
-    { $typeName: "ralvarezdev.v1.ProductionCompany", id: 128, name: "DC Comics" },
-    { $typeName: "ralvarezdev.v1.ProductionCompany", id: 174, name: "Warner Bros. Pictures" },
-  ] as ProductionCompany[],
-  productionCountries: [{ $typeName: "ralvarezdev.v1.ProductionCountry", iso31661: "US", name: "United States of America" }] as ProductionCountry[],
-  releaseDate: releaseDateTimestamp,
-  revenue: BigInt(1004558444),
-  runtime: 152,
-  spokenLanguages: [{ $typeName: "ralvarezdev.v1.SpokenLanguage", iso6391: "en", name: "English", englishName: "English" }] as SpokenLanguage[],
-  status: "Released",
-  tagline: "Why So Serious?",
-  title: "The Dark Knight",
-  ratingAverageCritics: 8.4,
-  ratingAverageUsers: 9.2,
-  ratingCountCritics: 297,
-  ratingCountUsers: 45280,
-};
-
 const MovieDetailScreen = () => {
   const { movieId } = useLocalSearchParams();
   const router = useRouter();
@@ -113,10 +69,6 @@ const MovieDetailScreen = () => {
   }, []);
 
   useEffect(() => {
-    // Para pruebas, usar mockMovieDetail directamente
-    // setMovie(mockMovieDetail);
-    // setLoading(false);
-    // return;
     if (movieId) {
       loadMovieDetail();
     } else {
@@ -130,7 +82,6 @@ const MovieDetailScreen = () => {
       router.back();
     }
   }, [movieId]);
-  // En lugar de cargar desde la API, usar el mock:
 
   const loadMovieDetail = async () => {
     if (!movieId) return;
@@ -277,10 +228,11 @@ const MovieDetailScreen = () => {
 
     setSubmittingReview(true);
     movieService.clearLastError();
-
+    console.log("movie?.id", movie?.id);
     try {
       const request: UpdateMovieReviewRequest = {
-        id: Number.parseInt(movieId as string, 10),
+        id: movie?.id || 0,
+        // id: Number.parseInt(movieId as string, 10),
         rating: rating,
         review: review.trim() || undefined,
         $typeName: "ralvarezdev.v1.UpdateMovieReviewRequest" as const,

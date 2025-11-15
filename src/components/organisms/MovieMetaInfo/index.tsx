@@ -11,8 +11,8 @@ interface MovieMetaInfoProps {
 export const MovieMetaInfo: React.FC<MovieMetaInfoProps> = ({ director, releaseDate }) => {
   return (
     <View style={styles.container}>
-      <MovieMetaCard icon="🎬" label="Director" value={director} />
-      <MovieMetaCard icon="📅" label="Release Date" value={releaseDate} />
+      <MovieMetaCard icon="person" label="Director" value={director} />
+      <MovieMetaCard icon="calendar" label="Release Date" value={releaseDate} />
     </View>
   );
 };

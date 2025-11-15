@@ -1,9 +1,9 @@
 import React from "react";
-import { TouchableOpacity, Text, ActivityIndicator } from "react-native";
+import { TouchableOpacity, Text, ActivityIndicator, View } from "react-native";
 import { styles } from "./styles";
 
 interface ButtonProps {
-  title: string;
+  title: string | React.ReactNode;
   onPress: () => void;
   variant?: "primary" | "secondary";
   loading?: boolean;
@@ -20,7 +20,13 @@ export const Button: React.FC<ButtonProps> = ({ title, onPress, variant = "prima
       onPress={onPress}
       disabled={disabled || loading}
       activeOpacity={0.8}>
-      {loading ? <ActivityIndicator color={indicatorColor} /> : <Text style={textColor}>{title}</Text>}
+      {loading ? (
+        <ActivityIndicator color={indicatorColor} />
+      ) : typeof title === "string" ? (
+        <Text style={textColor}>{title}</Text>
+      ) : (
+        <View style={{ flexDirection: "row", alignItems: "center" }}>{title}</View>
+      )}
     </TouchableOpacity>
   );
 };

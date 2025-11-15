@@ -94,7 +94,7 @@ export class UserService {
   public async me(orops: GetMyProfileRequest): Promise<GetMyProfileResponse | undefined> {
     try {
       const user = await this.client.getMyProfile(orops);
-      console.log("user profile", user);
+      // console.log("user profile", user);
       return user as GetMyProfileResponse;
     } catch (err) {
       if (err instanceof ConnectError) {
@@ -109,7 +109,7 @@ export class UserService {
   public async update(orops: UpdateProfileRequest): Promise<UpdateProfileResponse | undefined> {
     try {
       const result = await this.client.updateProfile(orops);
-      console.log("update user profile", result);
+      // console.log("update user profile", result);
       return result as UpdateProfileResponse;
     } catch (err) {
       if (err instanceof ConnectError) {

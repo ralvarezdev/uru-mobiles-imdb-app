@@ -1,11 +1,24 @@
 import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
-  row: { flexDirection: "row", gap: 8, marginTop: 12, marginBottom: 8, marginHorizontal: 10 },
+  scrollContainer: {
+    marginTop: 12,
+    marginBottom: 8,
+    maxHeight: 40,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingRight: 20,
+  },
   chip: {
-    paddingHorizontal: 18,
-    paddingVertical: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
     borderRadius: 20,
     borderColor: "#DF3D36",
     marginRight: 8,
+    minHeight: 36,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

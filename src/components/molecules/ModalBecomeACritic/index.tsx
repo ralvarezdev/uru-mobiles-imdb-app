@@ -3,7 +3,8 @@ import { Modal } from "@/components/atoms/Modal";
 import { CriticModalContent } from "@/components/organisms/CriticContent";
 import authService from "@/services/authService";
 import { useState } from "react";
-import { View } from "react-native";
+import { View, Text } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 import { LoadingMessage } from "../LoadingMessage";
 import { isParsedInternalServerError, isInternalServerError } from "@/utils/errorHandler";
@@ -93,7 +94,12 @@ export const ModalBecomeACritic: React.FC<ModalBecomeACriticProps> = ({ visible,
     <Modal
       visible={visible}
       onClose={onClose}
-      title="🎭 Become a Critic"
+      title={
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Ionicons name="ticket" size={20} color="#0f1724" style={{ marginRight: 8 }} />
+          <Text style={{ fontSize: 18, fontWeight: "bold", color: "#0f1724" }}>Become a Critic</Text>
+        </View>
+      }
       footer={
         <View style={{ flexDirection: "row", gap: 12, width: "100%" }}>
           <View style={{ flex: 1 }}>

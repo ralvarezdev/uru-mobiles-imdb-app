@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Modal, Pressable } from "react-native";
 import { styles } from "./style";
 import { SortBy } from "@ralvarezdev/proto-movies-ts";
-import { Feather } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 
 export interface SortSelectorProps {
   selected: SortBy | null;
@@ -12,15 +12,15 @@ export interface SortSelectorProps {
 interface SortOption {
   value: SortBy | null;
   label: string;
-  emoji: string;
+  icon: keyof typeof Ionicons.glyphMap;
 }
 
 const sortOptions: SortOption[] = [
-  { value: null, label: "Default", emoji: "🔀" },
-  { value: SortBy.PRIMARY_RELEASE_DATE_DESC, label: "Newest", emoji: "📅" },
-  { value: SortBy.PRIMARY_RELEASE_DATE_ASC, label: "Oldest", emoji: "📆" },
-  { value: SortBy.VOTE_AVERAGE_DESC, label: "Highest Rated", emoji: "⭐" },
-  { value: SortBy.VOTE_AVERAGE_ASC, label: "Lowest Rated", emoji: "📉" },
+  { value: null, label: "Default", icon: "shuffle" },
+  { value: SortBy.PRIMARY_RELEASE_DATE_DESC, label: "Newest", icon: "calendar" },
+  { value: SortBy.PRIMARY_RELEASE_DATE_ASC, label: "Oldest", icon: "calendar-outline" },
+  { value: SortBy.VOTE_AVERAGE_DESC, label: "Highest Rated", icon: "star" },
+  { value: SortBy.VOTE_AVERAGE_ASC, label: "Lowest Rated", icon: "star-outline" },
 ];
 
 export const SortSelector = ({ selected, onSelect }: SortSelectorProps) => {
@@ -38,9 +38,10 @@ export const SortSelector = ({ selected, onSelect }: SortSelectorProps) => {
       <TouchableOpacity style={styles.selectorButton} onPress={() => setModalVisible(true)} activeOpacity={0.7}>
         <View style={styles.selectorContent}>
           <Text style={styles.selectorLabel}>Sort by:</Text>
-          <Text style={styles.selectorValue}>
-            {selectedOption.emoji} {selectedOption.label}
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+            <Ionicons name={selectedOption.icon} size={16} color="#0f1724" style={{ marginRight: 6 }} />
+            <Text style={styles.selectorValue}>{selectedOption.label}</Text>
+          </View>
           <Feather name="chevron-down" size={18} color="#64748b" />
         </View>
       </TouchableOpacity>
@@ -63,9 +64,10 @@ export const SortSelector = ({ selected, onSelect }: SortSelectorProps) => {
                     style={[styles.optionItem, isSelected && styles.optionItemSelected]}
                     onPress={() => handleSelect(option.value)}
                     activeOpacity={0.7}>
-                    <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
-                      {option.emoji} {option.label}
-                    </Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+                      <Ionicons name={option.icon} size={18} color={isSelected ? "#DF3D36" : "#0f1724"} style={{ marginRight: 8 }} />
+                      <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>{option.label}</Text>
+                    </View>
                     {isSelected && <Feather name="check" size={20} color="#DF3D36" />}
                   </TouchableOpacity>
                 );

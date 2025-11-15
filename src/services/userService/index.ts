@@ -81,19 +81,12 @@ export class UserService {
       
       return res as CreateAccountResponse;
     } catch (err) {
-      console.error("register error:", err);
+      // console.error("register error:", err);
       if (err instanceof ConnectError) {
         const parsedError = parseConnectError(err);
         console.log("Parsed registration errors:", parsedError);
-        // Store parsed error in a way that components can access it
-        // without throwing an unhandled error
-        (err as any).parsedError = parsedError;
-        // Store error globally for this request (alternative approach)
-        // This allows components to access the error even if we return undefined
         (this as any)._lastError = parsedError;
       }
-      // Return undefined instead of throwing to avoid unhandled errors
-      // Components should check for undefined response and handle errors accordingly
       return undefined;
     }
   }
@@ -141,7 +134,7 @@ export class UserService {
       
       return result as DeleteAccountResponse;
     } catch (err) {
-      console.error("delete error:", err);
+      // console.error("delete error:", err);
       if (err instanceof ConnectError) {
         const parsedError = parseConnectError(err);
         console.log("Parsed delete errors:", parsedError);

@@ -7,7 +7,6 @@ import {
   GetMovieDetailsResponse,
   GetMovieReviewsRequest,
   GetMovieReviewsResponse,
-  MovieReview,
   Genre,
   ProductionCompany,
   ProductionCountry,
@@ -24,7 +23,7 @@ import { MovieRatings } from "@/components/organisms/MovieRatings";
 import { MovieSynopsis } from "@/components/organisms/MovieSynopsis";
 import { MovieMetaInfo } from "@/components/organisms/MovieMetaInfo";
 import { MovieCast } from "@/components/organisms/MovieCast";
-import { MovieComments } from "@/components/organisms/MovieComments";
+import { MovieReviews } from "@/components/organisms/MovieReviews";
 import { AddReviewModal } from "@/components/organisms/AddReviewModal";
 import { MovieNotFound } from "@/components/organisms/MovieNotFound";
 
@@ -81,7 +80,7 @@ const MovieDetailScreen = () => {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [submittingComment, setSubmittingComment] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
     // Para pruebas, usar mockMovieDetail directamente
@@ -159,7 +158,7 @@ const MovieDetailScreen = () => {
       return;
     }
 
-    setSubmittingComment(true);
+    setSubmittingReview(true);
     try {
       const request: AddMovieReviewRequest = {
         id: parseInt(movieId as string, 10),
@@ -180,7 +179,7 @@ const MovieDetailScreen = () => {
 
       setIsModalVisible(false);
 
-      // Recargar los comentarios después de agregar uno nuevo
+      // Recargar los reviews después de agregar uno nuevo
       await loadMovieReviews();
     } catch (error: any) {
       console.error("Error adding review:", error);
@@ -192,7 +191,7 @@ const MovieDetailScreen = () => {
         visibilityTime: 5000, // 5 seconds
       });
     } finally {
-      setSubmittingComment(false);
+      setSubmittingReview(false);
     }
   };
 
@@ -218,35 +217,35 @@ const MovieDetailScreen = () => {
 
   const genres = movie.genres?.map((g) => g.name) || [];
 
-  // Map MovieReview to format expected by MovieComments component
-  const comments =
-    reviews?.movieReviews?.map((review: MovieReview) => {
-      const createdAt = review.createdAt?.seconds ? new Date(Number(review.createdAt.seconds) * 1000) : null;
-      let ago = "";
-      if (createdAt) {
-        const now = new Date();
-        const diffInSeconds = Math.floor((now.getTime() - createdAt.getTime()) / 1000);
-        if (diffInSeconds < 60) {
-          ago = `${diffInSeconds}s`;
-        } else if (diffInSeconds < 3600) {
-          const minutes = Math.floor(diffInSeconds / 60);
-          ago = `${minutes}m`;
-        } else if (diffInSeconds < 86400) {
-          const hours = Math.floor(diffInSeconds / 3600);
-          ago = `${hours}h`;
-        } else {
-          const days = Math.floor(diffInSeconds / 86400);
-          ago = `${days}d`;
-        }
-      }
-      return {
-        user: review.username || `User ${review.userId}`,
-        badge: review.isCritic ? "Critic" : "User",
-        ago,
-        rating: Math.round(review.rating),
-        text: review.review || "",
-      };
-    }) || [];
+  // Map MovieReview to format expected by MovieReviews component
+  // const reviews =
+  //   reviews?.movieReviews?.map((review: MovieReview) => {
+  //     const createdAt = review.createdAt?.seconds ? new Date(Number(review.createdAt.seconds) * 1000) : null;
+  //     let ago = "";
+  //     if (createdAt) {
+  //       const now = new Date();
+  //       const diffInSeconds = Math.floor((now.getTime() - createdAt.getTime()) / 1000);
+  //       if (diffInSeconds < 60) {
+  //         ago = `${diffInSeconds}s`;
+  //       } else if (diffInSeconds < 3600) {
+  //         const minutes = Math.floor(diffInSeconds / 60);
+  //         ago = `${minutes}m`;
+  //       } else if (diffInSeconds < 86400) {
+  //         const hours = Math.floor(diffInSeconds / 3600);
+  //         ago = `${hours}h`;
+  //       } else {
+  //         const days = Math.floor(diffInSeconds / 86400);
+  //         ago = `${days}d`;
+  //       }
+  //     }
+  //     return {
+  //       user: review.username || `User ${review.userId}`,
+  //       badge: review.isCritic ? "Critic" : "User",
+  //       ago,
+  //       rating: Math.round(review.rating),
+  //       text: review.review || "",
+  //     };
+  //   }) || [];
 
   return (
     <ScrollView
@@ -283,16 +282,16 @@ const MovieDetailScreen = () => {
 
       <MovieCast cast={[]} />
 
-      <MovieComments comments={comments} commentCount={reviews?.totalResults || 0} onAddComment={() => setIsModalVisible(true)} />
+      <MovieReviews
+        criticsReviews={reviews?.criticReviews || []}
+        usersReviews={reviews?.userReviews || []}
+        reviewCount={reviews?.totalResults || 0}
+        onAddReview={() => setIsModalVisible(true)}
+      />
 
       <View style={{ height: 48 }} />
 
-      <AddReviewModal
-        visible={isModalVisible}
-        onClose={() => setIsModalVisible(false)}
-        onSubmit={handleSubmitReview}
-        submitting={submittingComment}
-      />
+      <AddReviewModal visible={isModalVisible} onClose={() => setIsModalVisible(false)} onSubmit={handleSubmitReview} submitting={submittingReview} />
     </ScrollView>
   );
 };

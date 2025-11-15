@@ -2,12 +2,12 @@ import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { styles } from "./style";
 
-interface CommentFiltersProps {
+interface ReviewFiltersProps {
   activeFilter: string;
   onFilterChange: (filter: string) => void;
 }
 
-export const CommentFilters: React.FC<CommentFiltersProps> = ({ activeFilter, onFilterChange }) => {
+export const ReviewFilters: React.FC<ReviewFiltersProps> = ({ activeFilter, onFilterChange }) => {
   const filters = ["All", "Users", "Critics"];
 
   return (

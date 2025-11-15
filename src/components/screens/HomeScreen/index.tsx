@@ -128,7 +128,7 @@ export const moviesTest = [
     originalLanguage: "en",
     originalTitle: "Whispers in the Dark",
     overview: "A family moves into a haunted house with a grim past.",
-    posterUuid: "poster-uuid-008",
+    // posterUuid: "poster-uuid-008",
     title: "Whispers in the Dark",
     ratingAverageUsers: 5.8,
     ratingCountUsers: 125,
@@ -174,18 +174,18 @@ export const HomeScreen = () => {
   const [filter, setFilter] = useState("Todas");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
-  const [movies, setMovies] = useState<SimpleMovie[]>(moviesTest);
+  const [movies, setMovies] = useState<SimpleMovie[]>([] as SimpleMovie[]);
   useEffect(() => {
     loadMovies();
   }, []);
 
   const loadMovies = async () => {
     setLoading(true);
-    const searchMoviesProps: SearchMoviesRequest = {
-      query: "",
-      $typeName: "ralvarezdev.v1.SearchMoviesRequest",
-    };
-    //TODO: descomentar lo de abajo
+    // const searchMoviesProps: SearchMoviesRequest = {
+    //   query: "",
+    //   $typeName: "ralvarezdev.v1.SearchMoviesRequest",
+    // };
+    // //TODO: descomentar lo de abajo
     // const result = await movieService.search(searchMoviesProps);
     // setMovies(result.results);
     setMovies(moviesTest);

@@ -34,7 +34,7 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     color: "#0f1724",
   },
-  commentText: {
+  reviewText: {
     fontSize: 14,
     color: "#475569",
     lineHeight: 20,

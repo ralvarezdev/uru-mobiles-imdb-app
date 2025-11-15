@@ -12,7 +12,7 @@ export const MovieCard = ({ movie }: MovieCardProps) => {
   const yearText = movie.releaseDate?.seconds ? new Date(Number(movie.releaseDate.seconds) * 1000).getFullYear() : "—";
 
   const onPress = () => {
-    router.push({ pathname: `/(tabs)/home/movie/[movieId]`, params: { movieId: movie.id } });
+    router.push({ pathname: `/(tabs)/home/movie/[movieId]`, params: { movieId: 1 } });
   };
 
   return (
@@ -22,7 +22,7 @@ export const MovieCard = ({ movie }: MovieCardProps) => {
           <Text style={styles.yearText}>{yearText}</Text>
         </View>
         {/* Si tienes imagen, aquí va el <Image>. Si no, un placeholder */}
-        <Text style={styles.posterText}>{movie.posterUuid}</Text>
+        {/* <Text style={styles.posterText}>{movie.posterUrl}</Text> */}
       </View>
       <View style={styles.infoContainer}>
         <Text style={styles.title}>{movie.title}</Text>

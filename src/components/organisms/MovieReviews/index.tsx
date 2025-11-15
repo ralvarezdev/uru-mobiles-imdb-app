@@ -14,15 +14,24 @@ interface MovieReviewsProps {
   onAddReview: () => void;
 }
 
-export const MovieReviews: React.FC<MovieReviewsProps> = ({ usersReviews, reviewCount, onAddReview }) => {
+// Type guard to check if review is a MovieUserReview
+const isUserReview = (review: MovieUserReview | MovieCriticReview): review is MovieUserReview => {
+  return "username" in review && "review" in review;
+};
+
+export const MovieReviews: React.FC<MovieReviewsProps> = ({ criticsReviews, usersReviews, reviewCount, onAddReview }) => {
   const [activeFilter, setActiveFilter] = useState("All");
 
-  // const filteredReviews =
-  //   activeFilter === "All"
-  //     ? reviews
-  //     : activeFilter === "Users"
-  //     ? reviews.filter((c) => c.badge === "User")
-  //     : reviews.filter((c) => c.badge === "Critic");
+  // Combine both types of reviews
+  const allReviews: (MovieUserReview | MovieCriticReview)[] = [...criticsReviews, ...usersReviews];
+
+  // Filter reviews based on active filter
+  const filteredReviews =
+    activeFilter === "All"
+      ? allReviews
+      : activeFilter === "Users"
+      ? allReviews.filter((r) => isUserReview(r))
+      : allReviews.filter((r) => !isUserReview(r));
 
   return (
     <View style={styles.container}>
@@ -35,12 +44,16 @@ export const MovieReviews: React.FC<MovieReviewsProps> = ({ usersReviews, review
 
       <ReviewFilters activeFilter={activeFilter} onFilterChange={setActiveFilter} />
 
-      {usersReviews.length === 0 ? (
+      {filteredReviews.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>No reviews have been added yet.</Text>
         </View>
       ) : (
-        usersReviews.map((review, i) => <ReviewCard key={review.reviewId} review={review} />)
+        filteredReviews.map((review) => {
+          // Generate unique key based on review type
+          const key = isUserReview(review) ? `user-${review.reviewId}` : `critic-${review.id}`;
+          return <ReviewCard key={key} review={review} />;
+        })
       )}
     </View>
   );

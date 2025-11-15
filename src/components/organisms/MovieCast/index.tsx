@@ -8,18 +8,20 @@ interface MovieCastProps {
 }
 
 export const MovieCast: React.FC<MovieCastProps> = ({ cast }) => {
-  if (cast.length === 0) {
-    return null;
-  }
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Main Cast</Text>
-      <View style={styles.chipsContainer}>
-        {cast.map((actor, idx) => (
-          <ActorChip key={idx} name={actor} />
-        ))}
-      </View>
+      {cast.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No data available</Text>
+        </View>
+      ) : (
+        <View style={styles.chipsContainer}>
+          {cast.map((actor, idx) => (
+            <ActorChip key={idx} name={actor} />
+          ))}
+        </View>
+      )}
     </View>
   );
 };

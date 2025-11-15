@@ -16,5 +16,15 @@ export const styles = StyleSheet.create({
     flexWrap: "wrap",
     marginTop: 10,
   },
+  emptyContainer: {
+    paddingVertical: 24,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyText: {
+    fontSize: 14,
+    color: "#64748b",
+    textAlign: "center",
+  },
 });
 

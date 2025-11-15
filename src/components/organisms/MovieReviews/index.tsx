@@ -46,7 +46,7 @@ export const MovieReviews: React.FC<MovieReviewsProps> = ({ criticsReviews, user
 
       {filteredReviews.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No reviews have been added yet.</Text>
+          <Text style={styles.emptyText}>No data available</Text>
         </View>
       ) : (
         filteredReviews.map((review) => {

@@ -74,7 +74,7 @@ export const LoginForm: React.FC = () => {
 
     try {
       const result = await authService.logIn(loginInput);
-      console.log("Login result:", result);
+      // console.log("Login result:", result);
 
       if (result && result.$typeName === "ralvarezdev.v1.LogInResponse") {
         Toast.show({
@@ -114,7 +114,8 @@ export const LoginForm: React.FC = () => {
             });
           } else {
             // Check for other technical errors (internal, 502, authentication, etc.)
-            const isTechnicalError = isParsedInternalServerError(parsedError) ||
+            const isTechnicalError =
+              isParsedInternalServerError(parsedError) ||
               errorCode === "unauthenticated" ||
               generalMessage.toLowerCase().includes("missing authorization") ||
               generalMessage.toLowerCase().includes("unauthorized");

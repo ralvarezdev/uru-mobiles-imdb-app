@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./style";
 import { SimpleMovie } from "@ralvarezdev/proto-movies-ts";
 import { router } from "expo-router";
@@ -25,6 +26,7 @@ export const MovieCard = ({ movie }: MovieCardProps) => {
   const onPress = () => {
     router.push({ pathname: `/(tabs)/home/movie/[movieId]`, params: { movieId: movie.id } });
   };
+  console.log("movie.posterUrl", movie.posterUrl);
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
       <View style={styles.posterContainer}>
@@ -40,14 +42,22 @@ export const MovieCard = ({ movie }: MovieCardProps) => {
         </Text>
         <View style={styles.scoresRow}>
           <View style={styles.scoreBlock}>
-            <Text style={styles.scoreLabel}>Usuarios</Text>
-            <Text style={styles.star}>⭐</Text>
-            <Text style={styles.scoreValue}>{usersRating}</Text>
+            <Text style={styles.scoreLabel} numberOfLines={1}>
+              Usuarios
+            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+              <Ionicons name="star" size={14} color="#F7BB36" />
+              <Text style={styles.scoreValue}>{usersRating}</Text>
+            </View>
           </View>
           <View style={styles.scoreBlock}>
-            <Text style={styles.scoreLabel}>Críticos</Text>
-            <Text style={styles.star}>⭐</Text>
-            <Text style={styles.scoreValue}>{criticsRating}</Text>
+            <Text style={styles.scoreLabel} numberOfLines={1}>
+              Críticos
+            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+              <Ionicons name="star" size={14} color="#F7BB36" />
+              <Text style={styles.scoreValue}>{criticsRating}</Text>
+            </View>
           </View>
         </View>
       </View>

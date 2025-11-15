@@ -7,7 +7,7 @@ import { styles } from "./style";
 interface ModalProps {
   visible: boolean;
   onClose: () => void;
-  title?: string;
+  title?: string | React.ReactNode;
   children: React.ReactNode;
   footer?: React.ReactNode;
   showCloseButton?: boolean;
@@ -25,9 +25,13 @@ export const Modal: React.FC<ModalProps> = ({ visible, onClose, title, children,
                 {title && (
                   <View style={styles.header}>
                     <View style={styles.titleContainer}>
-                      <Text variant="title" style={styles.title}>
-                        {title}
-                      </Text>
+                      {typeof title === "string" ? (
+                        <Text variant="title" style={styles.title}>
+                          {title}
+                        </Text>
+                      ) : (
+                        title
+                      )}
                     </View>
                     {showCloseButton && (
                       <TouchableOpacity style={styles.closeButton} onPress={onClose} activeOpacity={0.7}>

@@ -21,7 +21,7 @@ const isUserReview = (review: MovieUserReview | MovieCriticReview): review is Mo
 
 const ReviewCard = ({ review, movieId, currentUsername, onEdit, onDelete }: ReviewCardProps) => {
   const isCritic = !isUserReview(review);
-  
+
   // Check if this review belongs to the current user
   const isOwnReview = isUserReview(review) && currentUsername !== undefined && review.username === currentUsername;
 
@@ -78,8 +78,15 @@ const ReviewCard = ({ review, movieId, currentUsername, onEdit, onDelete }: Revi
   // Convert 1-10 scale to 1-5 scale for star display
   const rating5 = convert10To5(rating10);
   const roundedRating5 = roundToHalf(rating5);
-  const fullStars = getFullStars(roundedRating5);
-  const hasHalf = hasHalfStar(roundedRating5);
+  const fullStars = Math.floor(roundedRating5);
+  const hasHalf = roundedRating5 % 1 !== 0;
+
+  // Debug logging
+  if (rating10 > 0) {
+    console.log(
+      `ReviewCard - rating10: ${rating10}, rating5: ${rating5}, roundedRating5: ${roundedRating5}, fullStars: ${fullStars}, hasHalf: ${hasHalf}`
+    );
+  }
 
   const handleEdit = () => {
     if (isUserReview(review) && movieId && onEdit) {
@@ -99,7 +106,7 @@ const ReviewCard = ({ review, movieId, currentUsername, onEdit, onDelete }: Revi
       ]);
     }
   };
-
+  console.log(review.rating);
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
@@ -115,19 +122,22 @@ const ReviewCard = ({ review, movieId, currentUsername, onEdit, onDelete }: Revi
 
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           {/* Render all 5 stars based on rating */}
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            {Array.from({ length: 5 }).map((_, i) => {
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+            {[0, 1, 2, 3, 4].map((i) => {
               let iconName: "star" | "star-half" | "star-outline" = "star-outline";
+              let starColor = "#ddd";
 
               if (i < fullStars) {
                 iconName = "star";
+                starColor = "#ffb400";
               } else if (i === fullStars && hasHalf) {
                 iconName = "star-half";
+                starColor = "#ffb400";
               }
 
-              return <Ionicons key={`star-${rating10}-${i}`} name={iconName} size={16} color="#ffb400" style={{ marginLeft: i === 0 ? 0 : 4 }} />;
+              return <Ionicons key={`star-${rating10}-${i}`} name={iconName} size={18} color={starColor} />;
             })}
-            <Text style={{ marginLeft: 8, fontSize: 12, color: "#666" }}>{rating10 > 0 ? rating10.toFixed(1) : "0.0"}</Text>
+            <Text style={{ marginLeft: 6, fontSize: 13, color: "#666", fontWeight: "600" }}>{rating10 > 0 ? rating10.toFixed(1) : "0.0"}</Text>
           </View>
 
           {/* Edit and Delete buttons for own reviews */}

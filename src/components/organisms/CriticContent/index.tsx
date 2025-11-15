@@ -1,6 +1,7 @@
 // src/components/organisms/CriticModalContent.tsx
 import React from 'react';
 import { View} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Input } from '@/components/atoms/Input';
 import { Text } from '@/components/atoms/Text';
 import { styles } from './style';
@@ -10,7 +11,7 @@ export const CriticModalContent: React.FC = () => {
     <View style={styles.container}>
       {/* Icono principal */}
       <View style={styles.iconContainer}>
-        <Text style={styles.icon}>🎭</Text>
+        <Ionicons name="ticket" size={54} color="#DF3D36" />
       </View>
 
       {/* Main Text */}
@@ -21,28 +22,28 @@ export const CriticModalContent: React.FC = () => {
       {/* Benefits List */}
       <View style={styles.benefitsList}>
         <View style={styles.benefitItem}>
-          <Text style={styles.checkmark}>✅</Text>
+          <Ionicons name="checkmark-circle" size={20} color="#10b981" style={{ marginRight: 8 }} />
           <Text variant="body" style={styles.benefitText}>
             "Critic" badge on your profile
           </Text>
         </View>
 
         <View style={styles.benefitItem}>
-          <Text style={styles.checkmark}>✅</Text>
+          <Ionicons name="checkmark-circle" size={20} color="#10b981" style={{ marginRight: 8 }} />
           <Text variant="body" style={styles.benefitText}>
             Your reviews appear in special section
           </Text>
         </View>
 
         <View style={styles.benefitItem}>
-          <Text style={styles.checkmark}>✅</Text>
+          <Ionicons name="checkmark-circle" size={20} color="#10b981" style={{ marginRight: 8 }} />
           <Text variant="body" style={styles.benefitText}>
             Your ratings count as "Critic Ratings"
           </Text>
         </View>
 
         <View style={styles.benefitItem}>
-          <Text style={styles.checkmark}>✅</Text>
+          <Ionicons name="checkmark-circle" size={20} color="#10b981" style={{ marginRight: 8 }} />
           <Text variant="body" style={styles.benefitText}>
             Greater visibility on the platform
           </Text>

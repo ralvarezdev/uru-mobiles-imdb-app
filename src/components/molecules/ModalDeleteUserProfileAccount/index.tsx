@@ -1,0 +1,174 @@
+import { Button } from "@/components/atoms/Button";
+import { Modal } from "@/components/atoms/Modal";
+import { DeleteAccountForm } from "@/components/organisms/DeleteAccountForm";
+import userService from "@/services/userService";
+import { DeleteAccountRequest } from "@ralvarezdev/proto-user-ts";
+import { useState } from "react";
+import { View } from "react-native";
+import Toast from "react-native-toast-message";
+import { LoadingMessage } from "../LoadingMessage";
+import { isParsedInternalServerError, isInternalServerError } from "@/utils/errorHandler";
+import { router } from "expo-router";
+
+interface ModalDeleteUserProfileAccountProps {
+  visible: boolean;
+  onClose: () => void;
+}
+
+interface FormErrors {
+  password: string;
+}
+
+export const ModalDeleteUserProfileAccount: React.FC<ModalDeleteUserProfileAccountProps> = ({ visible, onClose }) => {
+  const [deleteFormData, setDeleteFormData] = useState<DeleteAccountRequest>({
+    password: "P4$sw0rD#12345678",
+    $typeName: "ralvarezdev.v1.DeleteAccountRequest",
+  });
+  const [errors, setErrors] = useState<FormErrors>({
+    password: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const validateForm = (): { isValid: boolean; errorMessage: string } => {
+    let isValid = true;
+    const newErrors: FormErrors = {
+      password: "",
+    };
+    let errorMessage = "";
+
+    if (!deleteFormData.password || deleteFormData.password.trim() === "") {
+      newErrors.password = "Password is required to confirm";
+      errorMessage = "Password is required to confirm";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return { isValid, errorMessage };
+  };
+
+  const handleDeleteAccount = async () => {
+    // Primera validación
+    const validation = validateForm();
+    if (!validation.isValid) {
+      return;
+    }
+
+    // Si no ha confirmado, mostrar confirmación
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      Toast.show({
+        type: "error",
+        text1: "⚠️ Final Confirmation Required",
+        text2: "This action is PERMANENT and cannot be undone. Press Delete again to confirm.",
+        position: "bottom",
+        visibilityTime: 5000,
+      });
+      return;
+    }
+
+    setLoading(true);
+    // Clear any previous errors before making the request
+    userService.clearLastError();
+
+    try {
+      const response = await userService.delete(deleteFormData);
+
+      if (response?.$typeName === "ralvarezdev.v1.DeleteAccountResponse") {
+        console.log("Cuenta eliminada");
+        Toast.show({
+          type: "success",
+          text1: "Account deleted successfully",
+          text2: "Your account has been permanently deleted. Thank you for using our service.",
+          position: "bottom",
+          visibilityTime: 5000, // 5 seconds
+        });
+        onClose();
+        setDeleteFormData({ password: "", $typeName: "ralvarezdev.v1.DeleteAccountRequest" });
+        setConfirmDelete(false);
+        router.replace("/");
+      } else {
+        // Response is undefined, check for parsed error
+        const parsedError = userService.getLastError();
+
+        if (parsedError) {
+          // Check if it's an internal error (including 502) that shouldn't be shown to users
+          const isInternalError = isParsedInternalServerError(parsedError);
+
+          if (isInternalError) {
+            // Don't show internal errors to users
+            Toast.show({
+              type: "error",
+              text1: "Could not delete account",
+              text2: "An unexpected error occurred. Please try again later.",
+              position: "bottom",
+              visibilityTime: 5000, // 5 seconds
+            });
+          } else {
+            // Show user-friendly error message
+            Toast.show({
+              type: "error",
+              text1: "Could not delete account",
+              text2: parsedError.generalMessage || "Incorrect password or server error. Please try again.",
+              position: "bottom",
+              visibilityTime: 5000, // 5 seconds
+            });
+          }
+        } else {
+          Toast.show({
+            type: "error",
+            text1: "Could not delete account",
+            text2: "Incorrect password or server error. Please try again.",
+            position: "bottom",
+            visibilityTime: 5000, // 5 seconds
+          });
+        }
+        setConfirmDelete(false);
+      }
+    } catch (error: any) {
+      // This catch should rarely be hit now, but keep it as a safety net
+      console.error("Unexpected delete error:", error);
+      const isInternalError = isInternalServerError(error);
+      Toast.show({
+        type: "error",
+        text1: "Could not delete account",
+        text2: isInternalError ? "An internal error occurred. Please try again later." : "An unexpected error occurred. Please try again later.",
+        position: "bottom",
+        visibilityTime: 5000,
+      });
+      setConfirmDelete(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setDeleteFormData({ password: "", $typeName: "ralvarezdev.v1.DeleteAccountRequest" });
+    setErrors({ password: "" });
+    setConfirmDelete(false);
+    onClose();
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      onClose={handleCancel}
+      title="🗑️ Delete Account"
+      footer={
+        <View style={{ flexDirection: "row", gap: 12, width: "100%" }}>
+          <View style={{ flex: 1 }}>
+            <Button title="Cancel" variant="secondary" onPress={handleCancel} disabled={loading} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Button title="Delete" variant="primary" onPress={handleDeleteAccount} disabled={loading} loading={loading} />
+          </View>
+        </View>
+      }>
+      {loading ? (
+        <LoadingMessage message="Deleting account..." />
+      ) : (
+        <DeleteAccountForm data={deleteFormData} onDataChange={setDeleteFormData} errors={errors} />
+      )}
+    </Modal>
+  );
+};

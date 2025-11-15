@@ -1,16 +1,110 @@
+import { ActionButtonsUserProfile } from "@/components/molecules/ActionButtonsUserProfile";
+import { LoadingMessage } from "@/components/molecules/LoadingMessage";
+import { LogoutButtonUserProfile } from "@/components/molecules/LogoutButtonUserProfile";
+import { RequestToBeCriticUserProfile } from "@/components/molecules/RequestToBeCriticUserProfile";
+import { SecuritySectionUserProfile } from "@/components/molecules/SecuritySectionUserProfile";
 import { UserProfileCard } from "@/components/molecules/UserProfileCard";
-import { User } from "@/entities/User";
-import React from "react";
-import { View } from "react-native";
+import { UserProfileInformation } from "@/components/molecules/UserProfileInformation";
+import authService from "@/services/authService";
+import userService from "@/services/userService";
+import { ListUserRolesRequest } from "@ralvarezdev/proto-auth-ts";
+import { GetMyProfileResponse, GetMyProfileRequest } from "@ralvarezdev/proto-user-ts";
+import React, { useEffect, useState } from "react";
+import { View, ScrollView } from "react-native";
+import { styles } from "./style";
+import Toast from "react-native-toast-message";
+import { isInternalServerError } from "@/utils/errorHandler";
 
-interface UserProfileProps {
-  user: User;
-}
+export const UserProfile: React.FC = () => {
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<GetMyProfileResponse | undefined>();
+  // const [user, setUser] = useState<GetMyProfileResponse | undefined>({
+  //   firstName: "Juan",
+  //   lastName: "Pérez",
+  //   birthdate: { seconds: 1699476294n, nanos: 500000000, $typeName: "google.protobuf.Timestamp" } as Timestamp,
+  //   username: "juanperez87",
+  //   email: "juan.perez@example.com",
+  //   emailIsVerified: true,
+  //   phone: "+5491123456789",
+  //   phoneIsVerified: false,
+  //   hasTotpEnabled: true,
+  //   $typeName: "ralvarezdev.v1.GetMyProfileResponse",
+  // });
+  // const [userRoles, setUserRoles] = useState<string[]>([]);
+  const handleChangeUser = (field: keyof GetMyProfileResponse, value: string) => {
+    setUser((prev) => ({ ...prev, [field]: value } as GetMyProfileResponse));
+  };
 
-export const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
+  useEffect(() => {
+    loadUserProfile();
+  }, []);
+
+  const loadUserProfile = async () => {
+    setLoading(true);
+    try {
+      const getMyProfileRequest: GetMyProfileRequest = {
+        $typeName: "ralvarezdev.v1.GetMyProfileRequest",
+      };
+      const user = await userService.me(getMyProfileRequest);
+      setUser(user);
+    } catch (error: any) {
+      console.error("Error loading user profile:", error);
+      const isInternalError = isInternalServerError(error);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: isInternalError
+          ? "An internal error occurred while loading your profile. Please try again later."
+          : "Could not load your profile. Please try again.",
+        position: "bottom",
+        visibilityTime: 5000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // useEffect(() => {
+  //   if (user?.username) {
+  //     loadUserRoles();
+  //   }
+  // }, [user]);
+
+  // const loadUserRoles = async () => {
+  //   setLoading(true);
+  //   const getUserRolesRequest: ListUserRolesRequest = {
+  //     username: user!.username,
+  //     $typeName: "ralvarezdev.v1.ListUserRolesRequest",
+  //   };
+  //   const userRoles = await authService.getMyRoles(getUserRolesRequest);
+  //   setUserRoles(userRoles?.roleNames || []);
+  //   setLoading(false);
+  // };
+
+  if (loading) {
+    return <LoadingMessage message="Load user profile..." />;
+  }
+
   return (
-    <View>
+    <View style={styles.container}>
       <UserProfileCard user={user} />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+        scrollEnabled={true}
+        showsVerticalScrollIndicator={true}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled">
+        <UserProfileInformation user={user} />
+        <SecuritySectionUserProfile user={user} onEmailChange={(text) => handleChangeUser("email", text)} />
+        {/* <RequestToBeCriticUserProfile user={user} userRoles={userRoles} /> */}
+        <ActionButtonsUserProfile
+          user={user}
+          onFirstNameChange={(text) => handleChangeUser("firstName", text)}
+          onLastNameChange={(text) => handleChangeUser("lastName", text)}
+        />
+        <LogoutButtonUserProfile />
+      </ScrollView>
     </View>
   );
 };

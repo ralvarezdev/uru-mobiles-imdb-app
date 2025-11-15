@@ -4,6 +4,7 @@ import { View } from "react-native";
 import { styles } from "./styles";
 import { Text } from "@/components/atoms/Text";
 import { Input } from "@/components/atoms/Input";
+import { spacing } from "@/theme";
 
 interface InputFieldProps {
   label: string;
@@ -12,6 +13,7 @@ interface InputFieldProps {
   onChangeText: (text: string) => void;
   secureTextEntry?: boolean;
   icon?: string;
+  error?: string;
 }
 
 export const InputField: React.FC<InputFieldProps> = ({
@@ -21,6 +23,7 @@ export const InputField: React.FC<InputFieldProps> = ({
   onChangeText,
   secureTextEntry = false, // ✅ Valor por defecto
   icon,
+  error,
 }) => {
   return (
     <View style={styles.container}>
@@ -33,8 +36,14 @@ export const InputField: React.FC<InputFieldProps> = ({
           placeholder={placeholder}
           value={value}
           onChangeText={onChangeText}
-          secureTextEntry={secureTextEntry} // ✅ Ahora siempre es boolean
+          secureTextEntry={secureTextEntry}
+          style={
+            icon 
+              ? { paddingLeft: spacing.lg + 25, paddingRight: spacing.md }
+              : { paddingLeft: spacing.md, paddingRight: spacing.md }
+          }
         />
+        {!!error && <Text style={styles.error}>{error}</Text>}
       </View>
     </View>
   );

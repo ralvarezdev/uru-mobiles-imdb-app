@@ -7,8 +7,6 @@ export const styles = StyleSheet.create({
     height: 50,
     backgroundColor: colors.white,
     borderRadius: 8,
-    paddingHorizontal: spacing.md,
-    paddingLeft: spacing.lg + 25,
     fontSize: 14,
     color: colors.text.primary,
     borderWidth: 1,

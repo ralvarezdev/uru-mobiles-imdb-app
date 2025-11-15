@@ -8,6 +8,7 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+    minWidth: 100,
   },
   primaryButton: {
     backgroundColor: colors.primary,
@@ -22,6 +23,11 @@ export const styles = StyleSheet.create({
   },
   buttonText: {
     color: colors.white,
+    fontSize: typography.button.fontSize,
+    fontWeight: typography.button.fontWeight,
+  },
+  secondaryButtonText: {
+    color: colors.primary,
     fontSize: typography.button.fontSize,
     fontWeight: typography.button.fontWeight,
   },

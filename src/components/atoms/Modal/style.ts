@@ -3,10 +3,28 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  overlayPressable: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  keyboardView: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: 20,
+    flexShrink: 1,
   },
   modalContainer: {
     width: '100%',
@@ -15,12 +33,14 @@ export const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: '#fff',
     borderRadius: 20,
-    maxHeight: '90%',
+    maxHeight: '95%',
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
     elevation: 10,
+    flexDirection: 'column',
   },
   header: {
     flexDirection: 'row',
@@ -55,12 +75,17 @@ export const styles = StyleSheet.create({
   },
   body: {
     padding: 20,
+    backgroundColor: '#fff',
   },
   footer: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
     padding: 20,
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
+    backgroundColor: '#fff',
+    position: 'relative',
+    zIndex: 10,
+    elevation: 5,
   },
 });

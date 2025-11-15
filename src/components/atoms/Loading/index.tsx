@@ -1,7 +1,7 @@
 import { colors } from "@/theme";
 import React from "react";
 import { View, ActivityIndicator, ActivityIndicatorProps } from "react-native";
-import { styles } from "./styles";
+import { styles } from "./style";
 
 interface LoadingProps extends ActivityIndicatorProps {
   size?: "small" | "large";

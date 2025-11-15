@@ -102,37 +102,41 @@ export const UserRegisterForm: React.FC = () => {
       isValid = false;
     }
 
-    // Validate password
+    // Validate password - format like: P4$sw0rD#12345678
+    // Requirements: at least 16 characters, 2 uppercase, 2 lowercase, 2 special characters
     if (formData.password === "") {
       newErrors.password = "Password is required";
       if (!errorMessage) errorMessage = "Password is required";
       isValid = false;
-    }
-    // else if (formData.password.length < 16) {
-    //   newErrors.password = "Password must be at least 16 characters";
-    //   if (!errorMessage) errorMessage = "Password must be at least 16 characters";
-    //   isValid = false;
-    // } else {
-    //   // Count uppercase letters, special characters, and numbers
-    //   const uppercaseCount = (formData.password.match(/[A-Z]/g) || []).length;
-    //   const specialCharCount = (formData.password.match(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~£]/g) || []).length;
-    //   const numberCount = (formData.password.match(/[0-9]/g) || []).length;
+    } else if (formData.password.length < 16) {
+      newErrors.password = "Password must be at least 16 characters";
+      if (!errorMessage) errorMessage = "Password must be at least 16 characters";
+      isValid = false;
+    } else {
+      // Count character types
+      const uppercaseCount = (formData.password.match(/[A-Z]/g) || []).length;
+      const lowercaseCount = (formData.password.match(/[a-z]/g) || []).length;
+      const specialCharCount = (formData.password.match(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~£]/g) || []).length;
+      const numberCount = (formData.password.match(/[0-9]/g) || []).length;
 
-    //   // Check requirements
-    //   if (uppercaseCount < 2) {
-    //     newErrors.password = "Password must contain at least 2 uppercase letters";
-    //     if (!errorMessage) errorMessage = "Password must contain at least 2 uppercase letters";
-    //     isValid = false;
-    //   } else if (specialCharCount < 2) {
-    //     newErrors.password = "Password must contain at least 2 special characters";
-    //     if (!errorMessage) errorMessage = "Password must contain at least 2 special characters";
-    //     isValid = false;
-    //   } else if (numberCount < 4) {
-    //     newErrors.password = "Password must contain at least 4 numbers";
-    //     if (!errorMessage) errorMessage = "Password must contain at least 4 numbers";
-    //     isValid = false;
-    //   }
-    // }
+      if (uppercaseCount < 2) {
+        newErrors.password = "Password must contain at least 2 uppercase letters";
+        if (!errorMessage) errorMessage = "Password must contain at least 2 uppercase letters";
+        isValid = false;
+      } else if (lowercaseCount < 2) {
+        newErrors.password = "Password must contain at least 2 lowercase letters";
+        if (!errorMessage) errorMessage = "Password must contain at least 2 lowercase letters";
+        isValid = false;
+      } else if (specialCharCount < 2) {
+        newErrors.password = "Password must contain at least 2 special characters (!@#$%^&*...)";
+        if (!errorMessage) errorMessage = "Password must contain at least 2 special characters";
+        isValid = false;
+      } else if (numberCount < 1) {
+        newErrors.password = "Password must contain at least one number";
+        if (!errorMessage) errorMessage = "Password must contain at least one number";
+        isValid = false;
+      }
+    }
 
     setErrors(newErrors);
     return { isValid, errorMessage };
@@ -218,7 +222,8 @@ export const UserRegisterForm: React.FC = () => {
             });
           } else {
             // Check for technical errors (internal, 502, authentication, etc.)
-            const isTechnicalError = isParsedInternalServerError(parsedError) ||
+            const isTechnicalError =
+              isParsedInternalServerError(parsedError) ||
               errorCode === "unauthenticated" ||
               generalMessage.toLowerCase().includes("missing authorization") ||
               generalMessage.toLowerCase().includes("unauthorized");

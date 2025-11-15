@@ -49,14 +49,39 @@ export const ModalUpdatePassword: React.FC<ModalUpdatePasswordProps> = ({ visibl
       newErrors.newPassword = "Please enter a new password";
       errorMessage = "Please enter a new password";
       isValid = false;
-    } else if (passwordData.newPassword.length < 8) {
-      newErrors.newPassword = "Password must be at least 8 characters long";
-      errorMessage = "Password must be at least 8 characters long";
-      isValid = false;
     } else if (passwordData.oldPassword === passwordData.newPassword) {
       newErrors.newPassword = "New password must be different from current password";
       errorMessage = "New password must be different from current password";
       isValid = false;
+    } else if (passwordData.newPassword.length < 16) {
+      newErrors.newPassword = "Password must be at least 16 characters";
+      errorMessage = "Password must be at least 16 characters";
+      isValid = false;
+    } else {
+      // Validate password format - same rules as registration: P4$sw0rD#12345678
+      // Requirements: at least 16 characters, 2 uppercase, 2 lowercase, 2 special characters
+      const uppercaseCount = (passwordData.newPassword.match(/[A-Z]/g) || []).length;
+      const lowercaseCount = (passwordData.newPassword.match(/[a-z]/g) || []).length;
+      const specialCharCount = (passwordData.newPassword.match(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~£]/g) || []).length;
+      const numberCount = (passwordData.newPassword.match(/[0-9]/g) || []).length;
+
+      if (uppercaseCount < 2) {
+        newErrors.newPassword = "Password must contain at least 2 uppercase letters";
+        errorMessage = "Password must contain at least 2 uppercase letters";
+        isValid = false;
+      } else if (lowercaseCount < 2) {
+        newErrors.newPassword = "Password must contain at least 2 lowercase letters";
+        errorMessage = "Password must contain at least 2 lowercase letters";
+        isValid = false;
+      } else if (specialCharCount < 2) {
+        newErrors.newPassword = "Password must contain at least 2 special characters (!@#$%^&*...)";
+        errorMessage = "Password must contain at least 2 special characters";
+        isValid = false;
+      } else if (numberCount < 1) {
+        newErrors.newPassword = "Password must contain at least one number";
+        errorMessage = "Password must contain at least one number";
+        isValid = false;
+      }
     }
 
     setErrors(newErrors);
@@ -72,7 +97,7 @@ export const ModalUpdatePassword: React.FC<ModalUpdatePasswordProps> = ({ visibl
     setLoading(true);
     // Clear any previous errors before making the request
     authService.clearLastError();
-    
+
     try {
       const changePasswordRequest: ChangePasswordRequest = {
         oldPassword: passwordData.oldPassword,
@@ -82,13 +107,13 @@ export const ModalUpdatePassword: React.FC<ModalUpdatePasswordProps> = ({ visibl
 
       const response = await authService.changePassword(changePasswordRequest);
       console.log("change password response:", response);
-      
+
       if (response && response.$typeName === "ralvarezdev.v1.ChangePasswordResponse") {
         console.log("Password change successful");
         // Close modal first
         setPasswordData({ oldPassword: "", newPassword: "" });
         onClose();
-        
+
         // Show toast after modal closes (using global Toast instance)
         setTimeout(() => {
           Toast.show({
@@ -102,11 +127,11 @@ export const ModalUpdatePassword: React.FC<ModalUpdatePasswordProps> = ({ visibl
         // Response is undefined, check for parsed error
         const parsedError = authService.getLastError();
         console.log("Password change failed, parsed error:", parsedError);
-        
+
         if (parsedError) {
           // Check if it's an internal error (including 502) that shouldn't be shown to users
           const isInternalError = isParsedInternalServerError(parsedError);
-          
+
           if (isInternalError) {
             // Don't show internal errors to users
             Toast.show({
@@ -177,7 +202,9 @@ export const ModalUpdatePassword: React.FC<ModalUpdatePasswordProps> = ({ visibl
       ) : (
         <View style={styles.modalContent}>
           <View style={styles.infoBox}>
-            <Text style={styles.infoText}>Your password must be at least 8 characters long</Text>
+            <Text style={styles.infoText}>
+              Password requirements: at least 16 characters, 2 uppercase, 2 lowercase, 2 special characters, and 1 number
+            </Text>
           </View>
 
           <View style={styles.fieldContainer}>

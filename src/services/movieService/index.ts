@@ -1,4 +1,4 @@
-import { MoviesService as MoviesServiceProto, SearchMoviesRequest, SearchMoviesResponse, GetMovieDetailsRequest, GetMovieDetailsResponse, AddMovieReviewRequest, AddMovieReviewResponse, GetMovieReviewsRequest, GetMovieReviewsResponse, GetTopRatedMoviesRequest, GetTopRatedMoviesResponse, DiscoverMoviesRequest, DiscoverMoviesResponse, GetMovieGenresRequest, GetMovieGenresResponse } from "@ralvarezdev/proto-movies-ts";
+import { MoviesService as MoviesServiceProto, SearchMoviesRequest, SearchMoviesResponse, GetMovieDetailsRequest, GetMovieDetailsResponse, AddMovieReviewRequest, AddMovieReviewResponse, GetMovieReviewsRequest, GetMovieReviewsResponse, GetTopRatedMoviesRequest, GetTopRatedMoviesResponse, DiscoverMoviesRequest, DiscoverMoviesResponse, GetMovieGenresRequest, GetMovieGenresResponse, UpdateMovieReviewRequest, UpdateMovieReviewResponse, DeleteMovieReviewRequest, DeleteMovieReviewResponse } from "@ralvarezdev/proto-movies-ts";
 
 import * as Connect from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
@@ -192,6 +192,44 @@ export class MovieService {
       if (err instanceof ConnectError) {
         const parsedError = parseConnectError(err);
         console.log("Parsed getMovieGenres errors:", parsedError);
+        (this as any)._lastError = parsedError;
+      }
+      return undefined;
+    }
+  }
+
+  public async updateMovieReview(props: UpdateMovieReviewRequest): Promise<UpdateMovieReviewResponse | undefined> {
+    try {
+      const updateResponse = await this.client.updateMovieReview(props);
+      // console.log("updateMovieReview response:", updateResponse);
+      
+      // Clear any previous errors on success
+      (this as any)._lastError = undefined;
+      
+      return updateResponse as UpdateMovieReviewResponse;
+    } catch (err) {
+      if (err instanceof ConnectError) {
+        const parsedError = parseConnectError(err);
+        console.log("Parsed updateMovieReview errors:", parsedError);
+        (this as any)._lastError = parsedError;
+      }
+      return undefined;
+    }
+  }
+
+  public async deleteMovieReview(props: DeleteMovieReviewRequest): Promise<DeleteMovieReviewResponse | undefined> {
+    try {
+      const deleteResponse = await this.client.deleteMovieReview(props);
+      // console.log("deleteMovieReview response:", deleteResponse);
+      
+      // Clear any previous errors on success
+      (this as any)._lastError = undefined;
+      
+      return deleteResponse as DeleteMovieReviewResponse;
+    } catch (err) {
+      if (err instanceof ConnectError) {
+        const parsedError = parseConnectError(err);
+        console.log("Parsed deleteMovieReview errors:", parsedError);
         (this as any)._lastError = parsedError;
       }
       return undefined;

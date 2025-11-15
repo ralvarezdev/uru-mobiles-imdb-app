@@ -12,6 +12,10 @@ interface MovieReviewsProps {
   // reviews: GetMovieReviewsResponse[];
   reviewCount: number;
   onAddReview: () => void;
+  movieId?: number;
+  currentUsername?: string;
+  onEditReview?: (reviewId: number, rating: number, reviewText: string) => void;
+  onDeleteReview?: (reviewId: number) => void;
 }
 
 // Type guard to check if review is a MovieUserReview
@@ -19,7 +23,16 @@ const isUserReview = (review: MovieUserReview | MovieCriticReview): review is Mo
   return "username" in review && "review" in review;
 };
 
-export const MovieReviews: React.FC<MovieReviewsProps> = ({ criticsReviews, usersReviews, reviewCount, onAddReview }) => {
+export const MovieReviews: React.FC<MovieReviewsProps> = ({
+  criticsReviews,
+  usersReviews,
+  reviewCount,
+  onAddReview,
+  movieId,
+  currentUsername,
+  onEditReview,
+  onDeleteReview,
+}) => {
   const [activeFilter, setActiveFilter] = useState("All");
 
   // Combine both types of reviews
@@ -52,7 +65,16 @@ export const MovieReviews: React.FC<MovieReviewsProps> = ({ criticsReviews, user
         filteredReviews.map((review) => {
           // Generate unique key based on review type
           const key = isUserReview(review) ? `user-${review.reviewId}` : `critic-${review.id}`;
-          return <ReviewCard key={key} review={review} />;
+          return (
+            <ReviewCard
+              key={key}
+              review={review}
+              movieId={movieId}
+              currentUsername={currentUsername}
+              onEdit={onEditReview}
+              onDelete={onDeleteReview}
+            />
+          );
         })
       )}
     </View>

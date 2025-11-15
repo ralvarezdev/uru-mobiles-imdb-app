@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./style";
 import Badge from "@/components/atoms/Badge";
@@ -8,6 +8,10 @@ import { convert10To5, getFullStars, hasHalfStar, roundToHalf } from "@/utils/ra
 
 interface ReviewCardProps {
   review: MovieUserReview | MovieCriticReview;
+  movieId?: number;
+  currentUsername?: string;
+  onEdit?: (reviewId: number, rating: number, reviewText: string) => void;
+  onDelete?: (reviewId: number) => void;
 }
 
 // Type guard to check if review is a MovieUserReview
@@ -15,8 +19,11 @@ const isUserReview = (review: MovieUserReview | MovieCriticReview): review is Mo
   return "username" in review && "review" in review;
 };
 
-const ReviewCard = ({ review }: ReviewCardProps) => {
+const ReviewCard = ({ review, movieId, currentUsername, onEdit, onDelete }: ReviewCardProps) => {
   const isCritic = !isUserReview(review);
+  
+  // Check if this review belongs to the current user
+  const isOwnReview = isUserReview(review) && currentUsername !== undefined && review.username === currentUsername;
 
   // Debug: log specific properties to avoid BigInt serialization issues
   // console.log("ReviewCard - review.rating:", review.rating);
@@ -74,6 +81,25 @@ const ReviewCard = ({ review }: ReviewCardProps) => {
   const fullStars = getFullStars(roundedRating5);
   const hasHalf = hasHalfStar(roundedRating5);
 
+  const handleEdit = () => {
+    if (isUserReview(review) && movieId && onEdit) {
+      onEdit(review.reviewId, rating10, text || "");
+    }
+  };
+
+  const handleDelete = () => {
+    if (isUserReview(review) && movieId && onDelete) {
+      Alert.alert("Delete Review", "Are you sure you want to delete this review?", [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => onDelete(review.reviewId),
+        },
+      ]);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
@@ -87,20 +113,34 @@ const ReviewCard = ({ review }: ReviewCardProps) => {
           </View>
         </View>
 
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           {/* Render all 5 stars based on rating */}
-          {Array.from({ length: 5 }).map((_, i) => {
-            let iconName: "star" | "star-half" | "star-outline" = "star-outline";
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            {Array.from({ length: 5 }).map((_, i) => {
+              let iconName: "star" | "star-half" | "star-outline" = "star-outline";
 
-            if (i < fullStars) {
-              iconName = "star";
-            } else if (i === fullStars && hasHalf) {
-              iconName = "star-half";
-            }
+              if (i < fullStars) {
+                iconName = "star";
+              } else if (i === fullStars && hasHalf) {
+                iconName = "star-half";
+              }
 
-            return <Ionicons key={`star-${rating10}-${i}`} name={iconName} size={16} color="#ffb400" style={{ marginLeft: i === 0 ? 0 : 4 }} />;
-          })}
-          <Text style={{ marginLeft: 8, fontSize: 12, color: "#666" }}>{rating10 > 0 ? rating10.toFixed(1) : "0.0"}</Text>
+              return <Ionicons key={`star-${rating10}-${i}`} name={iconName} size={16} color="#ffb400" style={{ marginLeft: i === 0 ? 0 : 4 }} />;
+            })}
+            <Text style={{ marginLeft: 8, fontSize: 12, color: "#666" }}>{rating10 > 0 ? rating10.toFixed(1) : "0.0"}</Text>
+          </View>
+
+          {/* Edit and Delete buttons for own reviews */}
+          {isOwnReview && (
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <TouchableOpacity onPress={handleEdit} activeOpacity={0.7}>
+                <Ionicons name="pencil" size={20} color="#64748b" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleDelete} activeOpacity={0.7}>
+                <Ionicons name="trash-outline" size={20} color="#ef4444" />
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
 

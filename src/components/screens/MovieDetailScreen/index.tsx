@@ -7,6 +7,8 @@ import {
   GetMovieDetailsResponse,
   GetMovieReviewsRequest,
   GetMovieReviewsResponse,
+  UpdateMovieReviewRequest,
+  DeleteMovieReviewRequest,
   Genre,
   ProductionCompany,
   ProductionCountry,
@@ -14,6 +16,8 @@ import {
 } from "@ralvarezdev/proto-movies-ts";
 import { Timestamp } from "@bufbuild/protobuf/wkt";
 import movieService from "@/services/movieService";
+import userService from "@/services/userService";
+import { GetMyProfileRequest } from "@ralvarezdev/proto-user-ts";
 import { LoadingMessage } from "@/components/molecules/LoadingMessage";
 import Toast from "react-native-toast-message";
 import { isInternalServerError, isParsedInternalServerError } from "@/utils/errorHandler";
@@ -26,6 +30,7 @@ import { MovieMetaInfo } from "@/components/organisms/MovieMetaInfo";
 import { MovieCast } from "@/components/organisms/MovieCast";
 import { MovieReviews } from "@/components/organisms/MovieReviews";
 import { AddReviewModal } from "@/components/organisms/AddReviewModal";
+import { EditReviewModal } from "@/components/organisms/EditReviewModal";
 import { MovieNotFound } from "@/components/organisms/MovieNotFound";
 
 // Mock data for testing - using GetMovieDetailsResponse structure
@@ -80,7 +85,32 @@ const MovieDetailScreen = () => {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [currentUsername, setCurrentUsername] = useState<string | undefined>(undefined);
+  const [editingReviewId, setEditingReviewId] = useState<number | null>(null);
+  const [editingRating, setEditingRating] = useState(0);
+  const [editingReviewText, setEditingReviewText] = useState("");
+
+  const loadCurrentUser = async () => {
+    try {
+      userService.clearLastError();
+      const request: GetMyProfileRequest = {
+        $typeName: "ralvarezdev.v1.GetMyProfileRequest",
+      };
+      const user = await userService.me(request);
+      if (user?.username) {
+        setCurrentUsername(user.username);
+      }
+    } catch (error) {
+      // Silently fail - user might not be logged in
+      console.log("Could not load current user:", error);
+    }
+  };
+
+  useEffect(() => {
+    loadCurrentUser();
+  }, []);
 
   useEffect(() => {
     // Para pruebas, usar mockMovieDetail directamente
@@ -225,6 +255,154 @@ const MovieDetailScreen = () => {
       loadMovieReviews();
     }
   }, [movie]);
+
+  const handleEditReview = (reviewId: number, rating: number, reviewText: string) => {
+    setEditingReviewId(reviewId);
+    setEditingRating(rating);
+    setEditingReviewText(reviewText);
+    setIsEditModalVisible(true);
+  };
+
+  const handleUpdateReview = async (rating: number, review: string) => {
+    if (!movieId || !editingReviewId) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Movie ID and Review ID are required",
+        position: "bottom",
+        visibilityTime: 5000,
+      });
+      return;
+    }
+
+    setSubmittingReview(true);
+    movieService.clearLastError();
+
+    try {
+      const request: UpdateMovieReviewRequest = {
+        id: Number.parseInt(movieId as string, 10),
+        rating: rating,
+        review: review.trim() || undefined,
+        $typeName: "ralvarezdev.v1.UpdateMovieReviewRequest" as const,
+      };
+
+      const response = await movieService.updateMovieReview(request);
+
+      if (response && response.$typeName === "ralvarezdev.v1.UpdateMovieReviewResponse") {
+        Toast.show({
+          type: "success",
+          text1: "Review updated successfully",
+          text2: "Your review has been updated",
+          position: "bottom",
+          visibilityTime: 5000,
+        });
+
+        setIsEditModalVisible(false);
+        setEditingReviewId(null);
+        await loadMovieReviews();
+      } else {
+        const parsedError = movieService.getLastError();
+        if (parsedError) {
+          const isInternalError = isParsedInternalServerError(parsedError);
+          Toast.show({
+            type: "error",
+            text1: "Error updating review",
+            text2: isInternalError
+              ? "An internal error occurred. Please try again later."
+              : parsedError.generalMessage || "Could not update your review. Please try again.",
+            position: "bottom",
+            visibilityTime: 5000,
+          });
+        } else {
+          Toast.show({
+            type: "error",
+            text1: "Error updating review",
+            text2: "Could not update your review. Please try again.",
+            position: "bottom",
+            visibilityTime: 5000,
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error("Unexpected error updating review:", error);
+      Toast.show({
+        type: "error",
+        text1: "Error updating review",
+        text2: "Could not update your review. Please try again.",
+        position: "bottom",
+        visibilityTime: 5000,
+      });
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const handleDeleteReview = async (reviewId: number) => {
+    if (!movieId) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Movie ID is required",
+        position: "bottom",
+        visibilityTime: 5000,
+      });
+      return;
+    }
+
+    movieService.clearLastError();
+
+    try {
+      const request: DeleteMovieReviewRequest = {
+        id: Number.parseInt(movieId as string, 10),
+        $typeName: "ralvarezdev.v1.DeleteMovieReviewRequest" as const,
+      };
+
+      const response = await movieService.deleteMovieReview(request);
+
+      if (response && response.$typeName === "ralvarezdev.v1.DeleteMovieReviewResponse") {
+        Toast.show({
+          type: "success",
+          text1: "Review deleted successfully",
+          text2: "Your review has been deleted",
+          position: "bottom",
+          visibilityTime: 5000,
+        });
+
+        await loadMovieReviews();
+      } else {
+        const parsedError = movieService.getLastError();
+        if (parsedError) {
+          const isInternalError = isParsedInternalServerError(parsedError);
+          Toast.show({
+            type: "error",
+            text1: "Error deleting review",
+            text2: isInternalError
+              ? "An internal error occurred. Please try again later."
+              : parsedError.generalMessage || "Could not delete your review. Please try again.",
+            position: "bottom",
+            visibilityTime: 5000,
+          });
+        } else {
+          Toast.show({
+            type: "error",
+            text1: "Error deleting review",
+            text2: "Could not delete your review. Please try again.",
+            position: "bottom",
+            visibilityTime: 5000,
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error("Unexpected error deleting review:", error);
+      Toast.show({
+        type: "error",
+        text1: "Error deleting review",
+        text2: "Could not delete your review. Please try again.",
+        position: "bottom",
+        visibilityTime: 5000,
+      });
+    }
+  };
 
   const handleSubmitReview = async (rating: number, review: string) => {
     if (!movieId) {
@@ -410,11 +588,26 @@ const MovieDetailScreen = () => {
         usersReviews={reviews?.userReviews || []}
         reviewCount={reviews?.totalResults || 0}
         onAddReview={() => setIsModalVisible(true)}
+        movieId={movie?.id ? Number(movie.id) : undefined}
+        currentUsername={currentUsername}
+        onEditReview={handleEditReview}
+        onDeleteReview={handleDeleteReview}
       />
 
       <View style={{ height: 48 }} />
 
       <AddReviewModal visible={isModalVisible} onClose={() => setIsModalVisible(false)} onSubmit={handleSubmitReview} submitting={submittingReview} />
+      <EditReviewModal
+        visible={isEditModalVisible}
+        onClose={() => {
+          setIsEditModalVisible(false);
+          setEditingReviewId(null);
+        }}
+        onSubmit={handleUpdateReview}
+        initialRating={editingRating}
+        initialReview={editingReviewText}
+        submitting={submittingReview}
+      />
     </ScrollView>
   );
 };

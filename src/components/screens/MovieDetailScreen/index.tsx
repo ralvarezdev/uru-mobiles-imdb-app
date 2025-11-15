@@ -16,7 +16,7 @@ import { Timestamp } from "@bufbuild/protobuf/wkt";
 import movieService from "@/services/movieService";
 import { LoadingMessage } from "@/components/molecules/LoadingMessage";
 import Toast from "react-native-toast-message";
-import { isInternalServerError } from "@/utils/errorHandler";
+import { isInternalServerError, isParsedInternalServerError } from "@/utils/errorHandler";
 
 import { styles } from "./style";
 import MoviePoster from "@/components/organisms/MoviePoster";
@@ -106,19 +106,49 @@ const MovieDetailScreen = () => {
     if (!movieId) return;
 
     setLoading(true);
+    // Clear any previous errors before making the request
+    movieService.clearLastError();
+
     try {
       const request: GetMovieDetailsRequest = {
         id: Number.parseInt(movieId as string, 10),
         $typeName: "ralvarezdev.v1.GetMovieDetailsRequest" as const,
       };
-      const response: GetMovieDetailsResponse = await movieService.getDetail(request);
-      setMovie(response);
+      const response = await movieService.getDetail(request);
+
+      if (response && response.$typeName === "ralvarezdev.v1.GetMovieDetailsResponse") {
+        setMovie(response);
+      } else {
+        // Response is undefined, check for parsed error
+        const parsedError = movieService.getLastError();
+
+        if (parsedError) {
+          // Check if it's a 502 or other internal server error
+          const isInternalError = isParsedInternalServerError(parsedError);
+
+          if (isInternalError) {
+            Toast.show({
+              type: "error",
+              text1: "Error",
+              text2: "An internal error occurred. Please try again later.",
+              position: "bottom",
+              visibilityTime: 5000,
+            });
+            // Don't set notFound for internal errors, just show error and go back
+            router.back();
+          } else {
+            // For other errors (like 404), show not found
+            setNotFound(true);
+          }
+        } else {
+          // No parsed error available, show not found
+          setNotFound(true);
+        }
+      }
     } catch (error: any) {
-      console.error("Error loading movie detail:", error);
-
-      // Check if it's a 502 or other internal server error
+      // This catch should rarely be hit now, but keep it as a safety net
+      console.error("Unexpected error loading movie detail:", error);
       const isInternalError = isInternalServerError(error);
-
       if (isInternalError) {
         Toast.show({
           type: "error",
@@ -127,10 +157,8 @@ const MovieDetailScreen = () => {
           position: "bottom",
           visibilityTime: 5000,
         });
-        // Don't set notFound for internal errors, just show error and go back
         router.back();
       } else {
-        // For other errors (like 404), show not found
         setNotFound(true);
       }
     } finally {
@@ -141,22 +169,45 @@ const MovieDetailScreen = () => {
   const loadMovieReviews = async () => {
     if (!movie?.id) return;
 
+    // Clear any previous errors before making the request
+    movieService.clearLastError();
+
     try {
       const request: GetMovieReviewsRequest = {
         id: movie.id,
         page: 1,
         $typeName: "ralvarezdev.v1.GetMovieReviewsRequest" as const,
       };
-      const response: GetMovieReviewsResponse = await movieService.getReviews(request);
-      setReviews(response);
+      const response = await movieService.getReviews(request);
+
+      if (response && response.$typeName === "ralvarezdev.v1.GetMovieReviewsResponse") {
+        setReviews(response);
+      } else {
+        // Response is undefined, check for parsed error
+        const parsedError = movieService.getLastError();
+
+        if (parsedError) {
+          // Check if it's a 502 or other internal server error
+          const isInternalError = isParsedInternalServerError(parsedError);
+
+          if (isInternalError) {
+            // For internal errors, show a generic message
+            Toast.show({
+              type: "error",
+              text1: "Error",
+              text2: "An internal error occurred while loading reviews. Please try again later.",
+              position: "bottom",
+              visibilityTime: 5000,
+            });
+          }
+          // For other errors, we don't show them to the user since reviews are optional
+        }
+      }
     } catch (error: any) {
-      console.error("Error loading movie reviews:", error);
-
-      // Check if it's a 502 or other internal server error
+      // This catch should rarely be hit now, but keep it as a safety net
+      console.error("Unexpected error loading movie reviews:", error);
       const isInternalError = isInternalServerError(error);
-
       if (isInternalError) {
-        // For internal errors, show a generic message
         Toast.show({
           type: "error",
           text1: "Error",
@@ -165,7 +216,6 @@ const MovieDetailScreen = () => {
           visibilityTime: 5000,
         });
       }
-      // For other errors, we don't show them to the user since reviews are optional
     }
   };
 
@@ -189,6 +239,9 @@ const MovieDetailScreen = () => {
     }
 
     setSubmittingReview(true);
+    // Clear any previous errors before making the request
+    movieService.clearLastError();
+
     try {
       const request: AddMovieReviewRequest = {
         id: Number.parseInt(movieId as string, 10),
@@ -197,44 +250,69 @@ const MovieDetailScreen = () => {
         $typeName: "ralvarezdev.v1.AddMovieReviewRequest" as const,
       };
 
-      await movieService.addReview(request);
+      const response = await movieService.addReview(request);
 
-      Toast.show({
-        type: "success",
-        text1: "Review added successfully",
-        text2: "Your review has been posted",
-        position: "bottom",
-        visibilityTime: 5000, // 5 seconds
-      });
-
-      setIsModalVisible(false);
-
-      // Recargar los reviews después de agregar uno nuevo
-      await loadMovieReviews();
-    } catch (error: any) {
-      console.error("Error adding review:", error);
-
-      // Check if it's a 502 or other internal server error
-      const isInternalError = isInternalServerError(error);
-
-      if (isInternalError) {
+      if (response && response.$typeName === "ralvarezdev.v1.AddMovieReviewResponse") {
         Toast.show({
-          type: "error",
-          text1: "Error adding review",
-          text2: "An internal error occurred. Please try again later.",
+          type: "success",
+          text1: "Review added successfully",
+          text2: "Your review has been posted",
           position: "bottom",
-          visibilityTime: 5000,
+          visibilityTime: 5000, // 5 seconds
         });
+
+        setIsModalVisible(false);
+
+        // Recargar los reviews después de agregar uno nuevo
+        await loadMovieReviews();
       } else {
-        // For other errors, show the error message
-        Toast.show({
-          type: "error",
-          text1: "Error adding review",
-          text2: error?.message || "Could not add your review. Please try again.",
-          position: "bottom",
-          visibilityTime: 5000,
-        });
+        // Response is undefined, check for parsed error
+        const parsedError = movieService.getLastError();
+
+        if (parsedError) {
+          // Check if it's a 502 or other internal server error
+          const isInternalError = isParsedInternalServerError(parsedError);
+
+          if (isInternalError) {
+            Toast.show({
+              type: "error",
+              text1: "Error adding review",
+              text2: "An internal error occurred. Please try again later.",
+              position: "bottom",
+              visibilityTime: 5000,
+            });
+          } else {
+            // For other errors, show the error message
+            Toast.show({
+              type: "error",
+              text1: "Error adding review",
+              text2: parsedError.generalMessage || "Could not add your review. Please try again.",
+              position: "bottom",
+              visibilityTime: 5000,
+            });
+          }
+        } else {
+          // No parsed error available, show generic message
+          Toast.show({
+            type: "error",
+            text1: "Error adding review",
+            text2: "Could not add your review. Please try again.",
+            position: "bottom",
+            visibilityTime: 5000,
+          });
+        }
       }
+    } catch (error: any) {
+      // This catch should rarely be hit now, but keep it as a safety net
+      console.error("Unexpected error adding review:", error);
+      const isInternalError = isInternalServerError(error);
+      Toast.show({
+        type: "error",
+        text1: "Error adding review",
+        text2: isInternalError ? "An internal error occurred. Please try again later." : "Could not add your review. Please try again.",
+        position: "bottom",
+        visibilityTime: 5000,
+      });
     } finally {
       setSubmittingReview(false);
     }

@@ -12,7 +12,7 @@ export const MovieCard = ({ movie }: MovieCardProps) => {
   const yearText = movie.releaseDate?.seconds ? new Date(Number(movie.releaseDate.seconds) * 1000).getFullYear() : "—";
 
   const onPress = () => {
-    router.push({ pathname: `/(tabs)/home/movie/[movieId]`, params: { movieId: 1 } });
+    router.push({ pathname: `/(tabs)/home/movie/[movieId]`, params: { movieId: movie.id } });
   };
 
   return (

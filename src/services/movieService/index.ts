@@ -1,8 +1,10 @@
-import { MoviesService as MoviesServiceProto, SearchMoviesRequest, SearchMoviesResponse, GetMovieDetailsRequest, GetMovieDetailsResponse, AddMovieReviewRequest, AddMovieReviewResponse, GetMovieReviewsRequest, GetMovieReviewsResponse } from "@ralvarezdev/proto-movies-ts";
+import { MoviesService as MoviesServiceProto, SearchMoviesRequest, SearchMoviesResponse, GetMovieDetailsRequest, GetMovieDetailsResponse, AddMovieReviewRequest, AddMovieReviewResponse, GetMovieReviewsRequest, GetMovieReviewsResponse, GetTopRatedMoviesRequest, GetTopRatedMoviesResponse } from "@ralvarezdev/proto-movies-ts";
 
 import * as Connect from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
 import Constants from "expo-constants";
+import { ConnectError } from "@connectrpc/connect";
+import { parseConnectError, ParsedError } from "@/services/errorHelper";
 
 const BASE_URL = Constants.expoConfig?.extra?.API_BASE_URL_MOVIE ?? "http://localhost:8080";
 
@@ -13,8 +15,7 @@ import { createAuthenticatedFetch } from "@/services/tokenHelper";
 let authenticatedFetchPromise: Promise<typeof fetch> | null = null;
 
 function getAuthenticatedFetch(): typeof fetch {
-  if (!authenticatedFetchPromise) {
-    authenticatedFetchPromise = (async () => {
+  authenticatedFetchPromise ??= (async () => {
       const authService = (await import("@/services/authService")).default;
       return createAuthenticatedFetch(
         fetch,
@@ -22,7 +23,6 @@ function getAuthenticatedFetch(): typeof fetch {
         () => authService.refreshAccessToken()
       );
     })();
-  }
   
   return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const fetchFn = await authenticatedFetchPromise!;
@@ -68,60 +68,113 @@ export class MovieService {
   //     return { headers };
   //   }
 
-  public async search(props: SearchMoviesRequest): Promise<SearchMoviesResponse> {
+  public async search(props: SearchMoviesRequest): Promise<SearchMoviesResponse | undefined> {
     try {
       const moviesResponse = await this.client.searchMovies(props);
-      console.log("res login", moviesResponse);
-      // if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
+      // console.log("search movies response:", moviesResponse);
+      
+      // Clear any previous errors on success
+      (this as any)._lastError = undefined;
+      
       return moviesResponse as SearchMoviesResponse;
-    } catch (err: any) {
-      console.error("err", err);
-      throw new Error(err?.message ?? "Error al iniciar sesión");
+    } catch (err) {
+      if (err instanceof ConnectError) {
+        const parsedError = parseConnectError(err);
+        console.log("Parsed search movies errors:", parsedError);
+        (this as any)._lastError = parsedError;
+      }
+      return undefined;
     }
   }
 
-  public async getDetail(props: GetMovieDetailsRequest): Promise<GetMovieDetailsResponse> {
+  public async getTopRatedMovies(props: GetTopRatedMoviesRequest): Promise<GetTopRatedMoviesResponse | undefined> {
     try {
-      const movieDetailResponse = await this.client.getMovieDetails(props);
-      console.log("res getDetail", movieDetailResponse);
-      return movieDetailResponse as GetMovieDetailsResponse;
-    } catch (err: any) {
-      console.error("err", err);
-      throw new Error(err?.message ?? "Error al obtener el detalle de la película");
+      const moviesResponse = await this.client.getTopRatedMovies(props);
+      console.log("getTopRatedMovies response:", moviesResponse);
+      
+      // Clear any previous errors on success
+      (this as any)._lastError = undefined;
+      
+      return moviesResponse as GetTopRatedMoviesResponse;
+    } catch (err) {
+      if (err instanceof ConnectError) {
+        const parsedError = parseConnectError(err);
+        console.log("Parsed getTopRatedMovies errors:", parsedError);
+        (this as any)._lastError = parsedError;
+      }
+      return undefined;
     }
   }
 
-  public async addReview(props: AddMovieReviewRequest): Promise<AddMovieReviewResponse> {
+  public async getDetail(props: GetMovieDetailsRequest): Promise<GetMovieDetailsResponse | undefined> {
+    try {
+      console.log("getReviews props:", props);
+      const movieDetailResponse = await this.client.getMovieDetails(props);
+      
+      (this as any)._lastError = undefined;
+      
+      return movieDetailResponse as GetMovieDetailsResponse;
+    } catch (err) {
+      if (err instanceof ConnectError) {
+        const parsedError = parseConnectError(err);
+        console.log("Parsed getDetail errors:", parsedError);
+        (this as any)._lastError = parsedError;
+      }
+      return undefined;
+    }
+  }
+
+  public async addReview(props: AddMovieReviewRequest): Promise<AddMovieReviewResponse | undefined> {
     try {
       const reviewResponse = await this.client.addMovieReview(props);
-      console.log("res addReview", reviewResponse);
+      console.log("addReview response:", reviewResponse);
+      
+      // Clear any previous errors on success
+      (this as any)._lastError = undefined;
+      
       return reviewResponse as AddMovieReviewResponse;
-    } catch (err: any) {
-      console.error("err", err);
-      throw new Error(err?.message ?? "Error al agregar el comentario");
+    } catch (err) {
+      if (err instanceof ConnectError) {
+        const parsedError = parseConnectError(err);
+        console.log("Parsed addReview errors:", parsedError);
+        (this as any)._lastError = parsedError;
+      }
+      return undefined;
     }
   }
 
-  public async getReviews(props: GetMovieReviewsRequest): Promise<GetMovieReviewsResponse> {
+  public async getReviews(props: GetMovieReviewsRequest): Promise<GetMovieReviewsResponse | undefined> {
     try {
+      console.log("getReviews props:", props);
       const reviewsResponse = await this.client.getMovieReviews(props);
-      console.log("res getReviews", reviewsResponse);
+      
+      (this as any)._lastError = undefined;
+      
       return reviewsResponse as GetMovieReviewsResponse;
-    } catch (err: any) {
-      console.error("err", err);
-      throw new Error(err?.message ?? "Error al obtener las reseñas");
+    } catch (err) {
+      if (err instanceof ConnectError) {
+        const parsedError = parseConnectError(err);
+        console.log("Parsed getReviews errors:", parsedError);
+        (this as any)._lastError = parsedError;
+      }
+      return undefined;
     }
   }
 
-  //   public async register(input: RegisterRequest): Promise<RegisterResponse> {
-  //     try {
-  //       const res = await (this.client as any).register(input);
-  //       if (res?.accessToken) this.setTokens(res.accessToken, res.refreshToken ?? null);
-  //       return res as RegisterResponse;
-  //     } catch (err: any) {
-  //       throw new Error(err?.message ?? "Error al registrar");
-  //     }
-  //   }
+  /**
+   * Gets the last parsed error from the most recent service call
+   * Use this in components to access error details when a method returns undefined
+   */
+  public getLastError(): ParsedError | undefined {
+    return (this as any)._lastError;
+  }
+
+  /**
+   * Clears the last error
+   */
+  public clearLastError(): void {
+    (this as any)._lastError = undefined;
+  }
 
   public static closeTransport(): void {
     try {

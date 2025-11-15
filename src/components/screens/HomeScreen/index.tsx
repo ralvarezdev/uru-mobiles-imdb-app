@@ -18,7 +18,7 @@ export const HomeScreen = () => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingGenres, setLoadingGenres] = useState(false);
-  const [movies, setMovies] = useState<SimpleMovie[]>([] as SimpleMovie[]);
+  const [movies, setMovies] = useState<SimpleMovie[]>([]);
   const [genres, setGenres] = useState<Genre[]>([]);
 
   // Load genres on mount
@@ -35,11 +35,6 @@ export const HomeScreen = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Load movies when debouncedSearch, genre, or sort changes
-  useEffect(() => {
-    loadMovies();
-  }, [debouncedSearch, selectedGenre, sortBy]);
-
   const loadGenres = async () => {
     setLoadingGenres(true);
     movieService.clearLastError();
@@ -50,7 +45,6 @@ export const HomeScreen = () => {
         $typeName: "ralvarezdev.v1.GetMovieGenresRequest" as const,
       };
       const result = await movieService.getMovieGenres(request);
-      console.log("getMovieGenres result:", result);
       if (result?.$typeName === "ralvarezdev.v1.GetMovieGenresResponse") {
         setGenres(result.genres ?? []);
       } else {
@@ -81,56 +75,67 @@ export const HomeScreen = () => {
     setLoading(true);
     movieService.clearLastError();
 
-    try {
-      let result;
+    const loadDiscoverMovies = async (): Promise<boolean> => {
+      const discoverMoviesProps: DiscoverMoviesRequest = {
+        $typeName: "ralvarezdev.v1.DiscoverMoviesRequest",
+        withGenres: selectedGenre === null ? [] : [String(selectedGenre)],
+        withCompanies: [],
+        withKeywords: [],
+        withCast: [],
+        withCrew: [],
+        withPeople: [],
+        withWatchProviders: [],
+        withWatchMonetizationTypes: [],
+        ...(sortBy !== null && { sortBy }),
+      };
 
-      // Use discoverMovies only when genre or sortBy is selected
+      const result = await movieService.discoverMovies(discoverMoviesProps);
+      if (result?.$typeName === "ralvarezdev.v1.DiscoverMoviesResponse") {
+        setMovies(result.results ?? []);
+        return true;
+      }
+      return false;
+    };
+
+    const loadSearchMovies = async (): Promise<boolean> => {
+      const searchMoviesProps: SearchMoviesRequest = {
+        query: debouncedSearch.trim(),
+        $typeName: "ralvarezdev.v1.SearchMoviesRequest",
+      };
+      const result = await movieService.search(searchMoviesProps);
+      if (result && result.$typeName === "ralvarezdev.v1.SearchMoviesResponse") {
+        setMovies(result.results || []);
+        return true;
+      }
+      return false;
+    };
+
+    const loadTopRatedMovies = async (): Promise<boolean> => {
+      const getTopRatedMoviesProps: GetTopRatedMoviesRequest = {
+        $typeName: "ralvarezdev.v1.GetTopRatedMoviesRequest",
+      };
+      const result = await movieService.getTopRatedMovies(getTopRatedMoviesProps);
+      if (result && result.$typeName === "ralvarezdev.v1.GetTopRatedMoviesResponse") {
+        setMovies(result.results || []);
+        return true;
+      }
+      return false;
+    };
+
+    try {
       const shouldUseDiscover = selectedGenre !== null || sortBy !== null;
+      let success = false;
 
       if (shouldUseDiscover) {
-        // Use discoverMovies for genre filtering or sorting
-        const discoverMoviesProps: DiscoverMoviesRequest = {
-          $typeName: "ralvarezdev.v1.DiscoverMoviesRequest",
-          withGenres: selectedGenre === null ? [] : [String(selectedGenre)],
-          withCompanies: [],
-          withKeywords: [],
-          withCast: [],
-          withCrew: [],
-          withPeople: [],
-          withWatchProviders: [],
-          withWatchMonetizationTypes: [],
-          ...(sortBy !== null && { sortBy }),
-        };
-
-        result = await movieService.discoverMovies(discoverMoviesProps);
-        if (result?.$typeName === "ralvarezdev.v1.DiscoverMoviesResponse") {
-          setMovies(result.results ?? []);
-        } else {
-          handleError();
-        }
+        success = await loadDiscoverMovies();
       } else if (debouncedSearch.trim()) {
-        // Default: use searchMovies when there's a search query
-        const searchMoviesProps: SearchMoviesRequest = {
-          query: debouncedSearch.trim(),
-          $typeName: "ralvarezdev.v1.SearchMoviesRequest",
-        };
-        result = await movieService.search(searchMoviesProps);
-        if (result && result.$typeName === "ralvarezdev.v1.SearchMoviesResponse") {
-          setMovies(result.results || []);
-        } else {
-          handleError();
-        }
+        success = await loadSearchMovies();
       } else {
-        // Default: use getTopRatedMovies when no search, genre, or sort
-        const getTopRatedMoviesProps: GetTopRatedMoviesRequest = {
-          $typeName: "ralvarezdev.v1.GetTopRatedMoviesRequest",
-        };
-        result = await movieService.getTopRatedMovies(getTopRatedMoviesProps);
-        if (result && result.$typeName === "ralvarezdev.v1.GetTopRatedMoviesResponse") {
-          setMovies(result.results || []);
-        } else {
-          handleError();
-        }
+        success = await loadTopRatedMovies();
+      }
+
+      if (!success) {
+        handleError();
       }
     } catch (error: any) {
       console.error("Unexpected error loading movies:", error);
@@ -139,6 +144,11 @@ export const HomeScreen = () => {
       setLoading(false);
     }
   }, [debouncedSearch, selectedGenre, sortBy]);
+
+  // Load movies when debouncedSearch, genre, or sort changes
+  useEffect(() => {
+    loadMovies();
+  }, [loadMovies]);
 
   const handleError = () => {
     const parsedError = movieService.getLastError();

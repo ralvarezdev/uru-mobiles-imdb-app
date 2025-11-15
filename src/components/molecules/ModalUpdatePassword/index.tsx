@@ -62,8 +62,8 @@ export const ModalUpdatePassword: React.FC<ModalUpdatePasswordProps> = ({ visibl
       // Requirements: at least 16 characters, 2 uppercase, 2 lowercase, 2 special characters
       const uppercaseCount = (passwordData.newPassword.match(/[A-Z]/g) || []).length;
       const lowercaseCount = (passwordData.newPassword.match(/[a-z]/g) || []).length;
-      const specialCharCount = (passwordData.newPassword.match(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~£]/g) || []).length;
-      const numberCount = (passwordData.newPassword.match(/[0-9]/g) || []).length;
+      const specialCharCount = (passwordData.newPassword.match(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~£]/g) || []).length;
+      const numberCount = (passwordData.newPassword.match(/\d/g) || []).length;
 
       if (uppercaseCount < 2) {
         newErrors.newPassword = "Password must contain at least 2 uppercase letters";

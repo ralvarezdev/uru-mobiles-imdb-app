@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import { styles } from "./style";
 import { SimpleMovie } from "@ralvarezdev/proto-movies-ts";
-import { router, useRouter } from "expo-router";
+import { router } from "expo-router";
 
 export interface MovieCardProps {
   movie: SimpleMovie;
@@ -25,7 +25,6 @@ export const MovieCard = ({ movie }: MovieCardProps) => {
   const onPress = () => {
     router.push({ pathname: `/(tabs)/home/movie/[movieId]`, params: { movieId: movie.id } });
   };
-  console.log(movie.posterUrl);
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
       <View style={styles.posterContainer}>

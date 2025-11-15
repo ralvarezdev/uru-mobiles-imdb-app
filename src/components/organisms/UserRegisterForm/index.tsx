@@ -116,8 +116,8 @@ export const UserRegisterForm: React.FC = () => {
       // Count character types
       const uppercaseCount = (formData.password.match(/[A-Z]/g) || []).length;
       const lowercaseCount = (formData.password.match(/[a-z]/g) || []).length;
-      const specialCharCount = (formData.password.match(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~£]/g) || []).length;
-      const numberCount = (formData.password.match(/[0-9]/g) || []).length;
+      const specialCharCount = (formData.password.match(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~£]/g) || []).length;
+      const numberCount = (formData.password.match(/\d/g) || []).length;
 
       if (uppercaseCount < 2) {
         newErrors.password = "Password must contain at least 2 uppercase letters";

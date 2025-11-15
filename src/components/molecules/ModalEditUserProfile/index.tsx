@@ -98,13 +98,60 @@ export const ModalEditUserProfile: React.FC<ModalEditUserProfileProps> = ({ user
         const parsedError = userService.getLastError();
         
         if (parsedError) {
-          Toast.show({
-            type: "error",
-            text1: "Could not update profile",
-            text2: parsedError.generalMessage || "Please try again.",
-            position: "bottom",
-            visibilityTime: 5000, // 5 seconds
-          });
+          // Check if it's an internal error that shouldn't be shown to users
+          const errorCodeLower = parsedError.errorCode?.toLowerCase() || "";
+          const originalMsgLower = parsedError.originalMessage?.toLowerCase() || "";
+          const generalMsgLower = parsedError.generalMessage?.toLowerCase() || "";
+          
+          const isInternalError = 
+            errorCodeLower === "internal" ||
+            errorCodeLower.includes("internal_error") ||
+            originalMsgLower.includes("internal") ||
+            generalMsgLower.includes("internal") ||
+            originalMsgLower.includes("internal server error") ||
+            generalMsgLower.includes("internal server error") ||
+            // Check for technical error patterns
+            originalMsgLower.includes("rpc error") ||
+            generalMsgLower.includes("rpc error") ||
+            originalMsgLower.includes("grpc") ||
+            generalMsgLower.includes("grpc") ||
+            // Check for authentication/authorization errors
+            errorCodeLower === "unauthenticated" ||
+            originalMsgLower.includes("missing authorization") ||
+            generalMsgLower.includes("missing authorization") ||
+            originalMsgLower.includes("unauthorized") ||
+            generalMsgLower.includes("unauthorized");
+          
+          // For validation errors, show field-specific messages
+          if (parsedError.isValidationError && parsedError.messages.length > 0) {
+            // Show first validation error
+            const firstError = parsedError.messages[0];
+            Toast.show({
+              type: "error",
+              text1: "Validation error",
+              text2: firstError.message || "Please check the form fields.",
+              position: "bottom",
+              visibilityTime: 5000, // 5 seconds
+            });
+          } else if (isInternalError) {
+            // Don't show internal errors to users - always show generic message
+            Toast.show({
+              type: "error",
+              text1: "Could not update profile",
+              text2: "An unexpected error occurred. Please try again later.",
+              position: "bottom",
+              visibilityTime: 5000, // 5 seconds
+            });
+          } else {
+            // Show user-friendly error message
+            Toast.show({
+              type: "error",
+              text1: "Could not update profile",
+              text2: parsedError.generalMessage || "Please try again.",
+              position: "bottom",
+              visibilityTime: 5000, // 5 seconds
+            });
+          }
         } else {
           Toast.show({
             type: "error",

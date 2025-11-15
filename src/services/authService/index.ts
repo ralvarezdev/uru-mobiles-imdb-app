@@ -345,6 +345,9 @@ export class AuthService {
 
   public async requestCriticRole(): Promise<any> {
     try {
+      // Clear any previous errors before making the request
+      (this as any)._lastError = undefined;
+      
       // TODO: Replace with actual proto types when available
       // Expected types: RequestCriticRoleRequest, RequestCriticRoleResponse
       // The method name might be: requestCriticRole, requestRole, or similar
@@ -357,10 +360,21 @@ export class AuthService {
         ?? await this.client.requestRole?.(request);
       
       console.log("request critic role response", response);
+      
+      // Clear any previous errors on success
+      (this as any)._lastError = undefined;
+      
       return response;
     } catch (err: any) {
-      console.error("err", err);
-      throw new Error(err?.message ?? "Error al solicitar ser crítico");
+      console.error("requestCriticRole error:", err);
+      if (err instanceof ConnectError) {
+        const parsedError = parseConnectError(err);
+        console.log("Parsed requestCriticRole errors:", parsedError);
+        // Store parsed error for components to access
+        (this as any)._lastError = parsedError;
+      }
+      // Return undefined instead of throwing to avoid unhandled errors
+      return undefined;
     }
   }
 

@@ -66,25 +66,89 @@ export const ModalDeleteUserProfileAccount: React.FC<ModalDeleteUserProfileAccou
     }
 
     setLoading(true);
+    // Clear any previous errors before making the request
+    userService.clearLastError();
+    
     try {
-      await userService.delete(deleteFormData);
-      console.log("Cuenta eliminada");
-      Toast.show({
-        type: "success",
-        text1: "Account deleted successfully",
-        text2: "Your account has been permanently deleted. Thank you for using our service.",
-        position: "bottom",
-        visibilityTime: 5000, // 5 seconds
-      });
-      onClose();
-      setDeleteFormData({ password: "", $typeName: "ralvarezdev.v1.DeleteAccountRequest" });
-      setConfirmDelete(false);
+      const response = await userService.delete(deleteFormData);
+      
+      if (response && response.$typeName === "ralvarezdev.v1.DeleteAccountResponse") {
+        console.log("Cuenta eliminada");
+        Toast.show({
+          type: "success",
+          text1: "Account deleted successfully",
+          text2: "Your account has been permanently deleted. Thank you for using our service.",
+          position: "bottom",
+          visibilityTime: 5000, // 5 seconds
+        });
+        onClose();
+        setDeleteFormData({ password: "", $typeName: "ralvarezdev.v1.DeleteAccountRequest" });
+        setConfirmDelete(false);
+      } else {
+        // Response is undefined, check for parsed error
+        const parsedError = userService.getLastError();
+        
+        if (parsedError) {
+          // Check if it's an internal error that shouldn't be shown to users
+          const errorCodeLower = parsedError.errorCode?.toLowerCase() || "";
+          const originalMsgLower = parsedError.originalMessage?.toLowerCase() || "";
+          const generalMsgLower = parsedError.generalMessage?.toLowerCase() || "";
+          
+          const isInternalError = 
+            errorCodeLower === "internal" ||
+            errorCodeLower.includes("internal_error") ||
+            originalMsgLower.includes("internal") ||
+            generalMsgLower.includes("internal") ||
+            originalMsgLower.includes("internal server error") ||
+            generalMsgLower.includes("internal server error") ||
+            originalMsgLower.includes("rpc error") ||
+            generalMsgLower.includes("rpc error") ||
+            originalMsgLower.includes("grpc") ||
+            generalMsgLower.includes("grpc") ||
+            // Check for authentication/authorization errors
+            errorCodeLower === "unauthenticated" ||
+            originalMsgLower.includes("missing authorization") ||
+            generalMsgLower.includes("missing authorization") ||
+            originalMsgLower.includes("unauthorized") ||
+            generalMsgLower.includes("unauthorized");
+          
+          if (isInternalError) {
+            // Don't show internal errors to users
+            Toast.show({
+              type: "error",
+              text1: "Could not delete account",
+              text2: "An unexpected error occurred. Please try again later.",
+              position: "bottom",
+              visibilityTime: 5000, // 5 seconds
+            });
+          } else {
+            // Show user-friendly error message
+            Toast.show({
+              type: "error",
+              text1: "Could not delete account",
+              text2: parsedError.generalMessage || "Incorrect password or server error. Please try again.",
+              position: "bottom",
+              visibilityTime: 5000, // 5 seconds
+            });
+          }
+        } else {
+          Toast.show({
+            type: "error",
+            text1: "Could not delete account",
+            text2: "Incorrect password or server error. Please try again.",
+            position: "bottom",
+            visibilityTime: 5000, // 5 seconds
+          });
+        }
+        setConfirmDelete(false);
+      }
     } catch (error: any) {
-      console.error("Error al eliminar cuenta:", error);
+      // This catch should rarely be hit now, but keep it as a safety net
+      console.error("Unexpected delete error:", error);
       Toast.show({
         type: "error",
         text1: "Could not delete account",
-        text2: error?.message || "Incorrect password or server error. Please try again.",
+        text2: "An unexpected error occurred. Please try again later.",
         position: "bottom",
         visibilityTime: 5000, // 5 seconds
       });

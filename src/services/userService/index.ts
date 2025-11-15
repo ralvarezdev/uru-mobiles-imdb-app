@@ -130,15 +130,25 @@ export class UserService {
 
   public async delete(orops: DeleteAccountRequest): Promise<DeleteAccountResponse | undefined> {
     try {
+      // Clear any previous errors before making the request
+      (this as any)._lastError = undefined;
+      
       const result = await this.client.deleteAccount(orops);
       console.log("delete user account", result);
+      
+      // Clear any previous errors on success
+      (this as any)._lastError = undefined;
+      
       return result as DeleteAccountResponse;
     } catch (err) {
+      console.error("delete error:", err);
       if (err instanceof ConnectError) {
         const parsedError = parseConnectError(err);
         console.log("Parsed delete errors:", parsedError);
+        // Store parsed error for components to access
         (this as any)._lastError = parsedError;
       }
+      // Return undefined instead of throwing to avoid unhandled errors
       return undefined;
     }
   }

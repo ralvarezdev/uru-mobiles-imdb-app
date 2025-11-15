@@ -216,14 +216,35 @@ export const UserRegisterForm: React.FC = () => {
               visibilityTime: 5000, // 5 seconds
             });
           } else {
-            // Show general error message
-            Toast.show({
-              type: "error",
-              text1: "Registration failed",
-              text2: generalMessage || "There was a problem creating your account. Please try again.",
-              position: "bottom",
-              visibilityTime: 5000, // 5 seconds
-            });
+            // Check for technical errors (internal, authentication, etc.)
+            const isTechnicalError =
+              errorCode === "internal" ||
+              errorCode === "unauthenticated" ||
+              generalMessage.toLowerCase().includes("internal") ||
+              generalMessage.toLowerCase().includes("missing authorization") ||
+              generalMessage.toLowerCase().includes("unauthorized") ||
+              generalMessage.toLowerCase().includes("rpc error") ||
+              generalMessage.toLowerCase().includes("grpc");
+
+            if (isTechnicalError) {
+              // Don't show technical errors to users
+              Toast.show({
+                type: "error",
+                text1: "Registration failed",
+                text2: "There was a problem creating your account. Please try again.",
+                position: "bottom",
+                visibilityTime: 5000, // 5 seconds
+              });
+            } else {
+              // Show general error message
+              Toast.show({
+                type: "error",
+                text1: "Registration failed",
+                text2: generalMessage || "There was a problem creating your account. Please try again.",
+                position: "bottom",
+                visibilityTime: 5000, // 5 seconds
+              });
+            }
           }
         } else {
           // No parsed error available, show generic message

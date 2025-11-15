@@ -17,16 +17,16 @@ export const ModalBecomeACritic: React.FC<ModalBecomeACriticProps> = ({ visible,
 
   const handleRequestCritic = async () => {
     setLoading(true);
+    // Clear any previous errors before making the request
+    authService.clearLastError();
+    
     try {
       // Call the API to request critic role
-      await authService.requestCriticRole();
+      const response = await authService.requestCriticRole();
 
-      console.log("Solicitud de crítico enviada");
-      // Close modal first
-      onClose();
-      
-      // Show toast after modal closes (using global Toast instance)
-      setTimeout(() => {
+      if (response) {
+        console.log("Solicitud de crítico enviada");
+        // Show toast
         Toast.show({
           type: "success",
           text1: "Request sent successfully!",
@@ -34,13 +34,71 @@ export const ModalBecomeACritic: React.FC<ModalBecomeACriticProps> = ({ visible,
           position: "bottom",
           visibilityTime: 5000, // 5 seconds
         });
-      }, 100); // Small delay to ensure modal is closed
+        onClose();
+      } else {
+        // Response is undefined, check for parsed error
+        const parsedError = authService.getLastError();
+        
+        if (parsedError) {
+          // Check if it's an internal error that shouldn't be shown to users
+          const errorCodeLower = parsedError.errorCode?.toLowerCase() || "";
+          const originalMsgLower = parsedError.originalMessage?.toLowerCase() || "";
+          const generalMsgLower = parsedError.generalMessage?.toLowerCase() || "";
+          
+          const isInternalError = 
+            errorCodeLower === "internal" ||
+            errorCodeLower.includes("internal_error") ||
+            originalMsgLower.includes("internal") ||
+            generalMsgLower.includes("internal") ||
+            originalMsgLower.includes("internal server error") ||
+            generalMsgLower.includes("internal server error") ||
+            originalMsgLower.includes("rpc error") ||
+            generalMsgLower.includes("rpc error") ||
+            originalMsgLower.includes("grpc") ||
+            generalMsgLower.includes("grpc") ||
+            // Check for authentication/authorization errors
+            errorCodeLower === "unauthenticated" ||
+            originalMsgLower.includes("missing authorization") ||
+            generalMsgLower.includes("missing authorization") ||
+            originalMsgLower.includes("unauthorized") ||
+            generalMsgLower.includes("unauthorized");
+          
+          if (isInternalError) {
+            // Don't show internal errors to users
+            Toast.show({
+              type: "error",
+              text1: "Could not send request",
+              text2: "An unexpected error occurred. Please try again later.",
+              position: "bottom",
+              visibilityTime: 5000, // 5 seconds
+            });
+          } else {
+            // Show user-friendly error message
+            Toast.show({
+              type: "error",
+              text1: "Could not send request",
+              text2: parsedError.generalMessage || "Please try again later.",
+              position: "bottom",
+              visibilityTime: 5000, // 5 seconds
+            });
+          }
+        } else {
+          Toast.show({
+            type: "error",
+            text1: "Could not send request",
+            text2: "Please try again later.",
+            position: "bottom",
+            visibilityTime: 5000, // 5 seconds
+          });
+        }
+      }
     } catch (error: any) {
-      console.error("Error al solicitar ser crítico:", error);
+      // This catch should rarely be hit now, but keep it as a safety net
+      console.error("Unexpected request critic error:", error);
       Toast.show({
         type: "error",
         text1: "Could not send request",
-        text2: error?.message ?? "Please try again later.",
+        text2: "An unexpected error occurred. Please try again later.",
         position: "bottom",
         visibilityTime: 5000, // 5 seconds
       });

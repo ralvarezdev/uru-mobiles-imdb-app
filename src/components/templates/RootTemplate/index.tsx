@@ -21,6 +21,9 @@ export const RootTemplate: React.FC<Props> = ({ children, backgroundColor }) => 
       <View style={styles.wrapper}>
         <View style={[styles.statusBarBackground, { height: insets.top }]} />
         <View style={styles.container}>{children}</View>
+      </View>
+      {/* Global Toast instance - single instance for entire app */}
+      <View style={styles.toastContainer}>
         <Toast />
       </View>
     </>

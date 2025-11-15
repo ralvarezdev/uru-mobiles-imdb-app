@@ -103,13 +103,48 @@ export const ModalUpdateEmail: React.FC<ModalUpdateEmailProps> = ({ visible, onC
         console.log("Email change failed, parsed error:", parsedError);
 
         if (parsedError) {
-          Toast.show({
-            type: "error",
-            text1: "Could not change email",
-            text2: parsedError.generalMessage || "Please try again.",
-            position: "bottom",
-            visibilityTime: 5000, // 5 seconds
-          });
+          // Check if it's an internal error that shouldn't be shown to users
+          const errorCodeLower = parsedError.errorCode?.toLowerCase() || "";
+          const originalMsgLower = parsedError.originalMessage?.toLowerCase() || "";
+          const generalMsgLower = parsedError.generalMessage?.toLowerCase() || "";
+
+          const isInternalError =
+            errorCodeLower === "internal" ||
+            errorCodeLower.includes("internal_error") ||
+            originalMsgLower.includes("internal") ||
+            generalMsgLower.includes("internal") ||
+            originalMsgLower.includes("internal server error") ||
+            generalMsgLower.includes("internal server error") ||
+            originalMsgLower.includes("rpc error") ||
+            generalMsgLower.includes("rpc error") ||
+            originalMsgLower.includes("grpc") ||
+            generalMsgLower.includes("grpc") ||
+            // Check for authentication/authorization errors
+            errorCodeLower === "unauthenticated" ||
+            originalMsgLower.includes("missing authorization") ||
+            generalMsgLower.includes("missing authorization") ||
+            originalMsgLower.includes("unauthorized") ||
+            generalMsgLower.includes("unauthorized");
+
+          if (isInternalError) {
+            // Don't show internal errors to users
+            Toast.show({
+              type: "error",
+              text1: "Could not change email",
+              text2: "An unexpected error occurred. Please try again later.",
+              position: "bottom",
+              visibilityTime: 5000, // 5 seconds
+            });
+          } else {
+            // Show user-friendly error message
+            Toast.show({
+              type: "error",
+              text1: "Could not change email",
+              text2: parsedError.generalMessage || "Please try again.",
+              position: "bottom",
+              visibilityTime: 5000, // 5 seconds
+            });
+          }
         } else {
           Toast.show({
             type: "error", // 'success', 'error', 'info'

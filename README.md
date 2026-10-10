@@ -39,3 +39,7 @@ npm run web
 ## Notes
 
 No `LICENSE` file is present in this repository.
+
+## Related repositories
+
+- [`uru-mobiles-imdb-api`](https://github.com/ralvarezdev/uru-mobiles-imdb-api) — matching API.
